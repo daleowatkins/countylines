@@ -1278,9 +1278,9 @@
                     <button onClick={() => setActiveTab('finances')} disabled={modal || eventQueue.length > 0} className={`flex flex-col items-center justify-center p-2 rounded disabled:opacity-30 ${activeTab === 'finances' ? 'text-indigo-400 bg-gray-800' : 'text-gray-500'}`}><Landmark size={20} /><span className="text-[10px] mt-1 font-bold">Finances</span></button>
                 </div>
             </div>
-        )}
+        );
     }
-    
+
     // --- APP RENDER ---
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<CountyLinesGame />);
