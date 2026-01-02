@@ -21,6 +21,7 @@
     <style>
         body { background-color: #0f172a; color: white; touch-action: manipulation; }
         .no-select { -webkit-user-select: none; user-select: none; }
+        .bar-transition { transition: width 0.5s ease-in-out; }
     </style>
 </head>
 <body>
@@ -34,6 +35,7 @@
             return <i className={`fa-solid ${name} ${className}`} style={style}></i>;
         };
 
+        // Icons
         const MapPin = (p) => <Icon name="fa-map-marker-alt" {...p} />;
         const Users = (p) => <Icon name="fa-users" {...p} />;
         const Home = (p) => <Icon name="fa-home" {...p} />;
@@ -43,6 +45,10 @@
         const Navigation = (p) => <Icon name="fa-location-arrow" {...p} />;
         const Bus = (p) => <Icon name="fa-bus" {...p} />;
         const Train = (p) => <Icon name="fa-train" {...p} />;
+        const Car = (p) => <Icon name="fa-car" {...p} />; 
+        const Eye = (p) => <Icon name="fa-eye" {...p} />;
+        const Mask = (p) => <Icon name="fa-mask" {...p} />;
+        const Mobile = (p) => <Icon name="fa-mobile-screen" {...p} />;
         const Clock = (p) => <Icon name="fa-clock" {...p} />;
         const ShieldAlert = (p) => <Icon name="fa-shield-halved" {...p} />;
         const Skull = (p) => <Icon name="fa-skull" {...p} />;
@@ -77,6 +83,8 @@
         const Lock = (p) => <Icon name="fa-lock" {...p} />;
         const ArrowDownCircle = (p) => <Icon name="fa-circle-arrow-down" {...p} />;
         const Save = (p) => <Icon name="fa-floppy-disk" {...p} />;
+        const Fire = (p) => <Icon name="fa-fire" {...p} />;
+        const Siren = (p) => <Icon name="fa-bullhorn" {...p} />;
 
         const LOCATIONS = [
             { id: 'lon', name: 'London (The Ends)', type: 'city', volatility: 0.1, distance: 0, contact: { name: 'Prestige Car Wash', fee: 0.25, time: 2, desc: "Fast & Expensive" } },
@@ -99,12 +107,24 @@
             { id: 'p2', name: 'Coke', label: 'Kilo', unit: 'pkt', baseBuy: 45000, minSell: 45, maxSell: 55, conversion: 2500, demand: 1.75 }, 
         ];
 
+        const VEHICLES = {
+            mondeo: { id: 'mondeo', name: 'Ford Mondeo', cost: 2000, speedMod: 1.2, escapeChance: 0.2, desc: "Inconspicuous. Reliable. Slow." },
+            bmw: { id: 'bmw', name: 'BMW M4', cost: 45000, speedMod: 0.8, escapeChance: 0.5, desc: "Fast. Aggressive. Obvious." },
+            lambo: { id: 'lambo', name: 'Lambo Huracan', cost: 180000, speedMod: 0.5, escapeChance: 0.85, desc: "Outrun anything. Heat magnet." }
+        };
+
         const OPERATION_TYPES = {
             street: { name: 'Street Runners', cost: 0, risk: 0.15, speed: 4, processingSpeed: 0.5, description: "High risk. Slow processing." },
             cuckoo_old: { name: 'Cuckoo (Elderly)', cost: 500, risk: 0.25, speed: 5, processingSpeed: 2, description: "High risk. Moderate processing." },
             cuckoo_user: { name: 'Cuckoo (User)', cost: 1500, risk: 0.10, speed: 6, processingSpeed: 4, description: "Medium risk. Fast processing." },
             rental: { name: 'Luxury Rental', cost: 5000, risk: 0.02, speed: 10, processingSpeed: 8, description: "Low risk. Industrial efficiency." }
         };
+
+        const HEAT_ACTIONS = [
+            { id: 'sim', name: 'Swap Sim Card', cost: 20, pauseHours: 8, chance: 0.8, cooldownDays: 7, desc: "Pause heat 8h. 80% Success.", icon: Mobile },
+            { id: 'hotel_hide', name: 'Hide in Hotel', cost: 150, pauseHours: 24, chance: 1.0, cooldownDays: 0, desc: "Pause heat 24h. 100% Success. Takes 24h.", icon: Bed },
+            { id: 'snitch', name: 'Hit the Snitch', cost: 25000, pauseHours: 72, chance: 0.8, failPenalty: 100, cooldownDays: 14, desc: "Pause 3 Days. 20% fail (+100 Heat).", icon: Skull }
+        ];
 
         const TIME_ACTIONS = [
             { id: 'skin', name: 'Skin Up', time: 1, cost: 0, stress: -15, health: 0, strength: 0, intel: 0, icon: Cigarette, desc: "Relax (-Stress)" },
@@ -161,12 +181,20 @@
             const [productsConfig, setProductsConfig] = useState(PRODUCTS);
             const [day, setDay] = useState(1);
             const [hour, setHour] = useState(9);
+            const [totalHours, setTotalHours] = useState(0); // Absolute time tracker
             const [cash, setCash] = useState(0); 
             const [bank, setBank] = useState(0);    
             const [crypto, setCrypto] = useState(0); 
             const [debt, setDebt] = useState(0); 
             const [stress, setStress] = useState(0); 
             const [health, setHealth] = useState(100);
+            
+            // New Mechanics State
+            const [investigation, setInvestigation] = useState(0); // 0 to 1000
+            const [investigationPausedUntil, setInvestigationPausedUntil] = useState(0); // Total hours timestamp
+            const [vehicle, setVehicle] = useState(null); // { id: 'mondeo', ... }
+            const [actionCooldowns, setActionCooldowns] = useState({}); // { 'sim': dayNumber }
+
             const [strength, setStrength] = useState(10);
             const [intel, setIntel] = useState(10);
             
@@ -192,10 +220,11 @@
             // Computed values defined early to prevent reference errors
             const localOps = Object.entries(operations).filter(([_, op]) => op.locationId === location.id);
             const limit = DIFFICULTY_SETTINGS[difficulty].limit;
+            const isInvestigationPaused = totalHours < investigationPausedUntil;
 
             // --- Initialization ---
             useEffect(() => {
-                const save = localStorage.getItem('countyLinesSave_v1');
+                const save = localStorage.getItem('countyLinesSave_v3');
                 if (save) setHasSave(true);
                 generateNewPrices();
             }, [gameKey]);
@@ -204,27 +233,35 @@
             useEffect(() => {
                 if (gameState === 'playing') {
                 const saveState = {
-                    day, hour, cash, bank, crypto, debt, stress, health, strength, intel,
-                    inventory, location, prices, btcPrice, crew, operations, laundering,
-                    bannedLocations, productsConfig, logs, difficulty, gameState
+                    day, hour, totalHours, cash, bank, crypto, debt, stress, health, 
+                    investigation, investigationPausedUntil, vehicle, actionCooldowns,
+                    strength, intel, inventory, location, prices, btcPrice, crew, 
+                    operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState
                 };
-                localStorage.setItem('countyLinesSave_v1', JSON.stringify(saveState));
+                localStorage.setItem('countyLinesSave_v3', JSON.stringify(saveState));
                 }
-            }, [day, hour, cash, bank, crypto, debt, stress, health, strength, intel, inventory, location, prices, btcPrice, crew, operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState]);
+            }, [day, hour, totalHours, cash, bank, crypto, debt, stress, health, investigation, investigationPausedUntil, vehicle, actionCooldowns, strength, intel, inventory, location, prices, btcPrice, crew, operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState]);
 
             const loadGame = () => {
-                const saved = localStorage.getItem('countyLinesSave_v1');
+                const saved = localStorage.getItem('countyLinesSave_v3');
                 if (saved) {
                     try {
                         const data = JSON.parse(saved);
                         setDay(data.day);
                         setHour(data.hour);
+                        setTotalHours(data.totalHours || (data.day * 24 + data.hour));
                         setCash(data.cash);
                         setBank(data.bank);
                         setCrypto(data.crypto);
                         setDebt(data.debt);
                         setStress(data.stress);
                         setHealth(data.health);
+                        
+                        setInvestigation(data.investigation || 0);
+                        setInvestigationPausedUntil(data.investigationPausedUntil || 0);
+                        setVehicle(data.vehicle || null);
+                        setActionCooldowns(data.actionCooldowns || {});
+
                         setStrength(data.strength);
                         setIntel(data.intel);
                         setInventory(data.inventory);
@@ -279,14 +316,21 @@
                 const dist = Math.abs(targetLoc.distance - location.distance);
                 const trainHours = Math.max(1, Math.ceil(dist / 80) + 1); 
                 const coachHours = Math.max(2, Math.ceil(dist / 40) + 1);
+                
+                // Car speed depends on vehicle
+                let carSpeedMod = vehicle ? vehicle.speedMod : 1.0;
+                const carHours = Math.max(1, Math.ceil((dist / 70) * carSpeedMod)); 
+                
                 const trainCost = 20 + (dist * 0.4);
                 const coachCost = trainCost * 0.4;
+                const carCost = 10 + (dist * 0.2); // Fuel
 
                 return {
                     dist,
-                    train: { hours: trainHours, cost: Math.floor(trainCost) },
-                    coach: { hours: coachHours, cost: Math.floor(coachCost) },
-                    free: { hours: coachHours, cost: 0 }
+                    train: { hours: trainHours, cost: Math.floor(trainCost), risk: 0 }, // Low risk
+                    coach: { hours: coachHours, cost: Math.floor(coachCost), risk: 0 }, // Med risk handled by time
+                    car: { hours: carHours, cost: Math.floor(carCost), risk: 0 }, // Handled by +2/hr logic
+                    free: { hours: coachHours, cost: 0, risk: 20 }
                 };
             };
 
@@ -349,17 +393,24 @@
             // --- Game Lifecycle ---
 
             const startGame = (modeKey) => {
-                localStorage.removeItem('countyLinesSave_v1');
+                localStorage.removeItem('countyLinesSave_v3');
                 const settings = DIFFICULTY_SETTINGS[modeKey];
                 setDifficulty(modeKey);
                 setCash(settings.cash);
                 setDebt(settings.debt);
                 setDay(1);
                 setHour(9);
+                setTotalHours(24 + 9);
                 setBank(0);
                 setCrypto(0);
                 setStress(0);
                 setHealth(100);
+                
+                setInvestigation(0);
+                setInvestigationPausedUntil(0);
+                setVehicle(null);
+                setActionCooldowns({});
+
                 setStrength(10);
                 setIntel(10);
                 
@@ -408,8 +459,11 @@
 
             // --- Core Loop ---
 
-            const passTime = (hoursPassed, force = false) => {
+            const passTime = (hoursPassed, force = false, mode = 'wait') => {
                 if (modal && !force) return;
+
+                let newTotalHours = totalHours + hoursPassed;
+                setTotalHours(newTotalHours);
 
                 let newHour = hour + hoursPassed;
                 let daysPassed = 0;
@@ -418,9 +472,24 @@
                     newHour -= 24;
                     daysPassed++;
                 }
-
                 setHour(newHour);
                 
+                // --- Investigation Logic ---
+                if (totalHours > investigationPausedUntil) {
+                    // Not paused
+                    let invGrowth = hoursPassed; // +1 per hour base
+                    if (mode === 'car') invGrowth = hoursPassed * 2; // Doubles in car
+                    
+                    // If part of the duration was paused, calculate correctly
+                    if (totalHours < investigationPausedUntil + hoursPassed) {
+                         const pausedDuration = investigationPausedUntil - totalHours;
+                         const activeDuration = hoursPassed - Math.max(0, pausedDuration);
+                         invGrowth = activeDuration * (mode === 'car' ? 2 : 1);
+                    }
+
+                    setInvestigation(inv => Math.min(1000, inv + invGrowth));
+                }
+
                 processOperations(hoursPassed);
                 processLaundering(hoursPassed);
 
@@ -430,7 +499,7 @@
                     
                     const limit = DIFFICULTY_SETTINGS[difficulty].limit;
                     if (limit && newDay > limit && debt > 0) {
-                        localStorage.removeItem('countyLinesSave_v1');
+                        localStorage.removeItem('countyLinesSave_v3');
                         setModal({
                             title: "GAME OVER",
                             message: "Time's up fam.\n\nMiz pulled up on you. You didn't have the paper.\n\n*Bang*",
@@ -442,6 +511,16 @@
                     processDailyUpdates(daysPassed);
                     addLog(limit ? `🌅 Day ${newDay}. ${limit - newDay + 1} days left.` : `🌅 Day ${newDay}.`);
                     generateNewPrices();
+                }
+
+                // Check Investigation Game Over
+                if (investigation >= 1000) {
+                    setModal({
+                        title: "BUSTED",
+                        message: "The net closed in. Armed police raided your spot.\n\nYou are serving 12 years for conspiracy to supply.\n\nGAME OVER.",
+                        type: 'gameover'
+                    });
+                    localStorage.removeItem('countyLinesSave_v3');
                 }
             };
 
@@ -525,6 +604,10 @@
                         const riskFloor = op.crewType === 'street' ? 3 : 0;
                         if (incomeGenerated) {
                             op.risk += (opType.risk * hoursPassed);
+                            // Operations generate background investigation heat
+                            if (Math.random() < 0.05) {
+                                setInvestigation(inv => Math.min(1000, inv + 1));
+                            }
                         } else {
                             op.risk -= (0.2 * hoursPassed); 
                         }
@@ -560,6 +643,8 @@
                             cashAtRisk: op.cash,
                             stockAtRisk: Math.floor(stockLost)
                         });
+                        // Raids spike investigation
+                        setInvestigation(inv => Math.min(1000, inv + 50));
                     }
                 });
 
@@ -595,6 +680,13 @@
             const resolveRaid = (choice) => {
                 const currentEvent = eventQueue[0];
                 if (!currentEvent) return;
+
+                // Handle Pulled Over Events
+                if (currentEvent.type === 'pulled_over') {
+                    handlePulledOverChoice(choice);
+                    setEventQueue(prev => prev.slice(1));
+                    return;
+                }
 
                 const op = operations[currentEvent.opId];
                 if (!op) {
@@ -662,6 +754,38 @@
                 setEventQueue(prev => prev.slice(1));
             };
 
+            const handlePulledOverChoice = (choice) => {
+                if (choice === 'run') {
+                    // Escape chance depends on vehicle
+                    const escChance = vehicle ? vehicle.escapeChance : 0.2; 
+                    if (Math.random() < escChance) {
+                        setInvestigation(inv => Math.min(1000, inv + 50));
+                        addLog(`ESCAPED! You floored it. The ${vehicle.name} left them in the dust. (+50 Heat)`);
+                    } else {
+                        setInvestigation(1000); // Game Over next tick
+                        setModal({ title: "BUSTED", message: "Failed to outrun the feds. Arrested.", type: 'gameover' });
+                    }
+                } else if (choice === 'ditch') {
+                    if (Math.random() < 0.8) {
+                        const emptyInv = {};
+                        productsConfig.forEach(p => emptyInv[p.id] = 0);
+                        setInventory(emptyInv);
+                        setVehicle(null);
+                        addLog("Ditched stash & car. Walked away clean.");
+                    } else {
+                        setInvestigation(1000);
+                        setModal({ title: "BUSTED", message: "Officer saw you toss the bag. Arrested.", type: 'gameover' });
+                    }
+                } else if (choice === 'pull_over') {
+                    if (Math.random() < 0.2) {
+                        addLog("Officer checked ID and let you go. Close one.");
+                    } else {
+                        setInvestigation(1000);
+                        setModal({ title: "BUSTED", message: "Officer searched the car. Found the work. Arrested.", type: 'gameover' });
+                    }
+                }
+            };
+
             const performAction = (action) => {
                 if (cash < action.cost) {
                     setModal({ title: "Skint", message: "You can't afford that.", type: 'error' });
@@ -684,11 +808,74 @@
                 }
             };
 
+            const performHeatAction = (action) => {
+                if (cash < action.cost) {
+                    setModal({ title: "Skint", message: "You can't afford that.", type: 'error' });
+                    return;
+                }
+                
+                // Check Cooldown
+                const lastUsed = actionCooldowns[action.id] || 0;
+                if (day < lastUsed + action.cooldownDays) {
+                    setModal({ title: "Cooldown", message: `Can't do this yet. Wait ${lastUsed + action.cooldownDays - day} more days.`, type: 'error' });
+                    return;
+                }
+
+                setCash(c => c - action.cost);
+                
+                // Handle Success/Fail
+                if (Math.random() > action.chance) {
+                    // Fail
+                    if (action.failPenalty) {
+                        setInvestigation(inv => Math.min(1000, inv + action.failPenalty));
+                        addLog(`FAILED: ${action.name} went wrong! Heat +${action.failPenalty}.`);
+                    } else {
+                        addLog(`FAILED: ${action.name} didn't work.`);
+                    }
+                } else {
+                    // Success
+                    const pauseTime = action.pauseHours || 0;
+                    const newPauseUntil = Math.max(totalHours, investigationPausedUntil) + pauseTime;
+                    setInvestigationPausedUntil(newPauseUntil);
+                    addLog(`SUCCESS: ${action.name}. Investigation stalled for ${pauseTime}h.`);
+                }
+                
+                // Set Cooldown
+                if (action.cooldownDays > 0) {
+                    setActionCooldowns(prev => ({ ...prev, [action.id]: day }));
+                }
+
+                if (action.id === 'hotel_hide') {
+                    passTime(24, true);
+                } else {
+                    passTime(1, true);
+                }
+            };
+
+            const buyVehicle = (carKey) => {
+                if (modal || eventQueue.length > 0) return;
+                const car = VEHICLES[carKey];
+                if (cash < car.cost) {
+                    setModal({ title: "Funds", message: "Can't afford this whip.", type: 'error' });
+                    return;
+                }
+                setCash(c => c - car.cost);
+                setVehicle(car);
+                addLog(`Bought a ${car.name}.`);
+            };
+
             const travelTo = (targetLocation, mode) => {
                 if (modal || eventQueue.length > 0) return; 
                 if (targetLocation.id === location.id) return;
+                
+                // Check Car Ownership
+                if (mode === 'car' && !vehicle) {
+                    setModal({ title: "No Whip", message: "You need to buy a car first.", type: 'error' });
+                    return;
+                }
+
                 const details = calculateTravelDetails(targetLocation);
-                const { hours, cost } = details[mode];
+                const { hours, cost, risk } = details[mode];
                 
                 if (cash < cost) {
                     setModal({ title: "Skint", message: `You need ${formatMoney(cost)} for the ${mode}.`, type: 'error' });
@@ -698,6 +885,13 @@
                 if (stress >= 100) {
                     setModal({ title: "Mental Breakdown", message: "Too stressed to travel.", type: 'error' });
                     return;
+                }
+
+                // Pulled Over Check (Car Only)
+                if (mode === 'car' && Math.random() < 0.15) { // 15% chance
+                     setEventQueue(prev => [...prev, { type: 'pulled_over' }]);
+                     // Don't execute travel yet
+                     return;
                 }
 
                 if (mode === 'free') {
@@ -711,13 +905,14 @@
                             type: 'error'
                         });
                         addLog("Caught bumping transport. Inventory seized.");
+                        setInvestigation(inv => Math.min(1000, inv + 50));
                     }
                 }
 
                 setCash(c => c - cost);
-                setStress(s => Math.min(100, s + 5 + (hours * 1))); 
+                setStress(s => Math.min(100, s + 5 + (hours * 1)));
                 setLocation(targetLocation);
-                passTime(hours);
+                passTime(hours, true, mode); // Pass 'mode' to double heat if car
                 addLog(`Arrived in ${targetLocation.name}.`);
                 
                 if (targetLocation.id === 'lon') setActiveTab('market');
@@ -782,6 +977,9 @@
                 setCash(c => c - opData.cost);
                 setCrew(prev => ({ ...prev, [selectedCrewType]: prev[selectedCrewType] - 1 }));
                 
+                // Establishing ops adds investigation
+                setInvestigation(i => Math.min(1000, i + 50));
+
                 const initialRisk = selectedCrewType === 'street' ? 3 : 0; 
                 const newOpId = `op_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
                 const initialStock = {};
@@ -877,6 +1075,7 @@
                     ...prev,
                     [opId]: { ...prev[opId], hasGrow: true }
                 }));
+                setInvestigation(i => Math.min(1000, i + 80)); // Grows are risky
                 passTime(3);
                 addLog("Grow tent installed.");
             };
@@ -1017,9 +1216,28 @@
                     </div>
                 )}
                 
-                {/* RAID EVENT OVERLAY */}
+                {/* RAID / PULLED OVER EVENT OVERLAY */}
                 {eventQueue.length > 0 && !modal && (() => {
                     const evt = eventQueue[0];
+                    if (evt.type === 'pulled_over') {
+                         return (
+                            <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+                                <div className="bg-blue-900/40 border border-blue-500 p-6 rounded-lg w-full max-w-sm shadow-2xl relative backdrop-blur-sm">
+                                    <div className="flex justify-center mb-4"><Siren size={48} className="text-blue-500 animate-pulse"/></div>
+                                    <h3 className="text-2xl font-black text-white text-center mb-2 uppercase">PULLED OVER</h3>
+                                    <p className="text-white text-center mb-2 font-bold">Feds are behind you.</p>
+                                    <p className="text-xs text-gray-300 text-center mb-6">Current Vehicle: <span className="text-white font-bold">{vehicle ? vehicle.name : 'Unknown'}</span></p>
+                                    
+                                    <div className="space-y-3">
+                                        <button onClick={() => resolveRaid('run')} className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white p-3 rounded text-left"><div className="font-bold text-sm text-red-500">Floor It</div><div className="text-xs text-gray-400">Try to outrun them. Escape chance based on car speed. Fail = Game Over.</div></button>
+                                        <button onClick={() => resolveRaid('ditch')} className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white p-3 rounded text-left"><div className="font-bold text-sm text-yellow-500">Ditch & Run</div><div className="text-xs text-gray-400">Bail out. Lose Car & Inventory (80% Success).</div></button>
+                                        <button onClick={() => resolveRaid('pull_over')} className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white p-3 rounded text-left"><div className="font-bold text-sm text-blue-400">Pull Over</div><div className="text-xs text-gray-400">Hope they don't notice. 20% Success. Fail = Game Over.</div></button>
+                                    </div>
+                                </div>
+                            </div>
+                         );
+                    }
+
                     const locName = LOCATIONS.find(l=>l.id===evt.locationId)?.name;
                     return (
                         <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
@@ -1052,14 +1270,25 @@
                         </div>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-2 mb-3">
-                        <div className="bg-gray-800 rounded-full h-3 overflow-hidden border border-gray-700 relative">
-                            <div className="absolute inset-0 flex items-center justify-center text-[8px] font-bold z-10 text-white drop-shadow-md">HEALTH {Math.floor(health)}%</div>
-                            <div className={`h-full ${health < 30 ? 'bg-red-600' : 'bg-green-600'} transition-all duration-300`} style={{ width: `${health}%` }}></div>
+                    {/* NEW: Police Investigation Bar */}
+                    <div className="mb-2">
+                         <div className="flex justify-between items-end mb-1">
+                            <span className="text-[10px] font-bold text-gray-400 flex items-center gap-1 uppercase"><Eye size={10} className={investigation > 750 ? "text-red-500 animate-pulse" : "text-gray-500"} /> Police Investigation {isInvestigationPaused && <span className="text-indigo-400 ml-2 animate-pulse">(PAUSED)</span>}</span>
+                            <span className={`text-[10px] font-bold ${investigation > 800 ? 'text-red-500 animate-pulse' : 'text-gray-500'}`}>{investigation}/1000</span>
                         </div>
-                        <div className="bg-gray-800 rounded-full h-3 overflow-hidden border border-gray-700 relative">
+                        <div className="bg-gray-800 rounded-full h-2 overflow-hidden border border-gray-700 relative">
+                             <div className={`h-full ${investigation > 750 ? 'bg-gradient-to-r from-orange-500 to-red-600' : 'bg-gradient-to-r from-blue-600 to-indigo-600'} bar-transition`} style={{ width: `${(investigation / 1000) * 100}%` }}></div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                        <div className="bg-gray-800 rounded-full h-2 overflow-hidden border border-gray-700 relative">
+                            <div className="absolute inset-0 flex items-center justify-center text-[8px] font-bold z-10 text-white drop-shadow-md">HEALTH {Math.floor(health)}%</div>
+                            <div className={`h-full ${health < 30 ? 'bg-red-600' : 'bg-green-600'} bar-transition`} style={{ width: `${health}%` }}></div>
+                        </div>
+                        <div className="bg-gray-800 rounded-full h-2 overflow-hidden border border-gray-700 relative">
                             <div className="absolute inset-0 flex items-center justify-center text-[8px] font-bold z-10 text-white drop-shadow-md">STRESS {Math.floor(stress)}%</div>
-                            <div className={`h-full ${stress > 80 ? 'bg-red-500' : 'bg-blue-500'} transition-all duration-300`} style={{ width: `${stress}%` }}></div>
+                            <div className={`h-full ${stress > 80 ? 'bg-red-500' : 'bg-blue-500'} bar-transition`} style={{ width: `${stress}%` }}></div>
                         </div>
                     </div>
 
@@ -1128,6 +1357,49 @@
                     {activeTab === 'travel' && (
                     <div className="space-y-3">
                         <h2 className="text-xl font-bold text-white mb-4">Select Destination</h2>
+                        
+                        {/* VEHICLE OWNERSHIP */}
+                        <div className="bg-gray-900 p-3 rounded border border-gray-800 mb-4">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase mb-2">My Vehicle</h3>
+                            {vehicle ? (
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <div className="text-indigo-400 font-bold">{vehicle.name}</div>
+                                        <div className="text-[10px] text-gray-500">{vehicle.desc}</div>
+                                    </div>
+                                    <div className="text-right text-[10px] text-gray-500">
+                                        <div>Escape: {(vehicle.escapeChance * 100).toFixed(0)}%</div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div>
+                                    <div className="text-gray-500 text-xs mb-2">No vehicle owned.</div>
+                                    <div className="grid grid-cols-3 gap-1">
+                                        {Object.values(VEHICLES).map(car => (
+                                            <button 
+                                                key={car.id} 
+                                                onClick={() => buyVehicle(car.id)}
+                                                disabled={cash < car.cost}
+                                                className="bg-gray-800 border border-gray-700 p-1 rounded hover:bg-gray-700 disabled:opacity-30"
+                                            >
+                                                <div className="text-[9px] font-bold text-white truncate">{car.name}</div>
+                                                <div className="text-[9px] text-green-400">{formatMoney(car.cost)}</div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="bg-blue-900/20 p-3 rounded border border-blue-900/50 text-xs text-blue-300 mb-2">
+                            <strong className="block mb-1">Transport Intel:</strong>
+                            <ul className="list-disc pl-4 space-y-1">
+                                <li>Cars: Double Heat gain. Chance to get Pulled Over.</li>
+                                <li>Trains: Safest (0 Risk). Expensive.</li>
+                                <li>Coaches: 0 Risk. Slow. Cheap.</li>
+                            </ul>
+                        </div>
+
                         {LOCATIONS.map(loc => {
                             if (loc.id === location.id) return null;
                             const details = calculateTravelDetails(loc);
@@ -1144,15 +1416,71 @@
                                         {stockWaiting > 0 && <div className="text-[10px] bg-indigo-900 text-indigo-300 px-2 py-1 rounded flex items-center gap-1"><Package size={10}/> {stockWaiting}u</div>}
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-3 gap-2">
-                                    <button onClick={() => travelTo(loc, 'train')} disabled={modal || eventQueue.length > 0} className="flex flex-col items-center justify-center p-2 bg-gray-800 hover:bg-indigo-900/40 border border-gray-700 rounded transition-colors disabled:opacity-30"><div className="flex items-center gap-1 text-xs text-indigo-400 font-bold mb-1"><Train size={14} /> Train</div><div className="text-white font-mono text-sm">{formatMoney(details.train.cost)}</div><div className="text-[10px] text-gray-500">{details.train.hours} hrs</div></button>
-                                    <button onClick={() => travelTo(loc, 'coach')} disabled={modal || eventQueue.length > 0} className="flex flex-col items-center justify-center p-2 bg-gray-800 hover:bg-indigo-900/40 border border-gray-700 rounded transition-colors disabled:opacity-30"><div className="flex items-center gap-1 text-xs text-orange-400 font-bold mb-1"><Bus size={14} /> Coach</div><div className="text-white font-mono text-sm">{formatMoney(details.coach.cost)}</div><div className="text-[10px] text-gray-500">{details.coach.hours} hrs</div></button>
-                                    <button onClick={() => travelTo(loc, 'free')} disabled={modal || eventQueue.length > 0} className="flex flex-col items-center justify-center p-2 bg-gray-800 hover:bg-red-900/20 border border-gray-700 hover:border-red-500/50 rounded transition-colors disabled:opacity-30 group"><div className="flex items-center gap-1 text-xs text-red-400 font-bold mb-1 group-hover:text-red-300"><TicketX size={14} /> Bump</div><div className="text-white font-mono text-sm">Free</div><div className="text-[10px] text-gray-500">{details.free.hours} hrs</div><div className="text-[9px] text-red-500 mt-1">5% Risk</div></button>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button onClick={() => travelTo(loc, 'train')} disabled={modal || eventQueue.length > 0} className="flex flex-col items-center justify-center p-2 bg-gray-800 hover:bg-indigo-900/40 border border-gray-700 rounded transition-colors disabled:opacity-30"><div className="flex items-center gap-1 text-xs text-indigo-400 font-bold mb-1"><Train size={14} /> Train</div><div className="text-white font-mono text-sm">{formatMoney(details.train.cost)}</div><div className="text-[10px] text-gray-500">{details.train.hours}h • Risk: None</div></button>
+                                    <button onClick={() => travelTo(loc, 'coach')} disabled={modal || eventQueue.length > 0} className="flex flex-col items-center justify-center p-2 bg-gray-800 hover:bg-indigo-900/40 border border-gray-700 rounded transition-colors disabled:opacity-30"><div className="flex items-center gap-1 text-xs text-orange-400 font-bold mb-1"><Bus size={14} /> Coach</div><div className="text-white font-mono text-sm">{formatMoney(details.coach.cost)}</div><div className="text-[10px] text-gray-500">{details.coach.hours}h • Risk: None</div></button>
+                                    <button onClick={() => travelTo(loc, 'car')} disabled={modal || eventQueue.length > 0} className="flex flex-col items-center justify-center p-2 bg-gray-800 hover:bg-red-900/40 border border-gray-700 rounded transition-colors disabled:opacity-30"><div className="flex items-center gap-1 text-xs text-red-400 font-bold mb-1"><Car size={14} /> Car</div><div className="text-white font-mono text-sm">{formatMoney(details.car.cost)}</div><div className="text-[10px] text-gray-500">{details.car.hours}h • Heat: x2</div></button>
+                                    <button onClick={() => travelTo(loc, 'free')} disabled={modal || eventQueue.length > 0} className="flex flex-col items-center justify-center p-2 bg-gray-800 hover:bg-red-900/20 border border-gray-700 hover:border-red-500/50 rounded transition-colors disabled:opacity-30 group"><div className="flex items-center gap-1 text-xs text-gray-400 font-bold mb-1 group-hover:text-red-300"><TicketX size={14} /> Bump</div><div className="text-white font-mono text-sm">Free</div><div className="text-[10px] text-gray-500">{details.free.hours}h • Risk: High</div></button>
                                 </div>
                             </div>
                             )
                         })}
                     </div>
+                    )}
+
+                    {/* HEAT TAB (NEW) */}
+                    {activeTab === 'heat' && (
+                        <div className="space-y-6">
+                            <h2 className="text-xl font-bold text-white flex items-center gap-2"><Mask size={24} className="text-red-500"/> Counter-Investigation</h2>
+                            <div className="bg-red-900/10 border border-red-900/50 p-4 rounded-lg">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-sm font-bold text-gray-300 uppercase">Current Investigation Level</span>
+                                    <span className="text-xl font-black text-red-500">{investigation}/1000</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-xs text-gray-400">Rate: +1/hr (+2 in Car)</span>
+                                    {isInvestigationPaused ? (
+                                        <span className="text-xs font-bold text-indigo-400 bg-indigo-900/30 px-2 py-1 rounded">PAUSED for {investigationPausedUntil - totalHours}h</span>
+                                    ) : (
+                                        <span className="text-xs font-bold text-red-400 animate-pulse">ACTIVE</span>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-3">
+                                {HEAT_ACTIONS.map(action => {
+                                    const lastUsed = actionCooldowns[action.id] || 0;
+                                    const onCooldown = day < lastUsed + action.cooldownDays;
+                                    
+                                    return (
+                                    <button 
+                                        key={action.id} 
+                                        onClick={() => performHeatAction(action)}
+                                        disabled={modal || eventQueue.length > 0 || cash < action.cost || onCooldown}
+                                        className="bg-gray-800 hover:bg-gray-700 border border-gray-600 p-4 rounded-lg text-left transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative overflow-hidden"
+                                    >
+                                        {onCooldown && (
+                                            <div className="absolute inset-0 bg-gray-900/80 flex items-center justify-center font-bold text-xs uppercase tracking-widest text-gray-400 z-10">
+                                                Cooldown ({lastUsed + action.cooldownDays - day} days)
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between items-start mb-1">
+                                            <div className="font-bold text-indigo-300 flex items-center gap-2">
+                                                <action.icon size={16} /> {action.name}
+                                            </div>
+                                            <div className="font-mono text-white text-sm bg-gray-900 px-2 py-1 rounded border border-gray-700 group-hover:border-gray-500">
+                                                {formatMoney(action.cost)}
+                                            </div>
+                                        </div>
+                                        <p className="text-xs text-gray-400 mb-2">{action.desc}</p>
+                                        <div className="flex gap-2 text-[10px] font-mono uppercase">
+                                            <span className="bg-blue-900/30 text-blue-300 px-2 py-1 rounded">Stall: {action.pauseHours}h</span>
+                                            {action.cooldownDays > 0 && <span className="bg-gray-900/30 text-gray-400 px-2 py-1 rounded">CD: {action.cooldownDays}d</span>}
+                                        </div>
+                                    </button>
+                                )})}
+                            </div>
+                        </div>
                     )}
 
                     {/* EMPIRE TAB */}
@@ -1269,15 +1597,15 @@
                     )}
                 </div>
 
-                <div className="bg-gray-900 border-t border-gray-800 p-2 z-10 grid grid-cols-4 gap-2">
+                <div className="bg-gray-900 border-t border-gray-800 p-2 z-10 grid grid-cols-5 gap-2">
                     <button onClick={() => setActiveTab('market')} disabled={modal || eventQueue.length > 0} className={`flex flex-col items-center justify-center p-2 rounded disabled:opacity-30 ${activeTab === 'market' ? 'text-indigo-400 bg-gray-800' : 'text-gray-500'}`}><DollarSign size={20} /><span className="text-[10px] mt-1 font-bold">Market</span></button>
                     <button onClick={() => setActiveTab('travel')} disabled={modal || eventQueue.length > 0} className={`flex flex-col items-center justify-center p-2 rounded disabled:opacity-30 ${activeTab === 'travel' ? 'text-indigo-400 bg-gray-800' : 'text-gray-500'}`}><Navigation size={20} /><span className="text-[10px] mt-1 font-bold">Travel</span></button>
-                    {location.id !== 'lon' && (
+                    {location.id !== 'lon' ? (
                         <button onClick={() => setActiveTab('empire')} disabled={modal || eventQueue.length > 0} className={`flex flex-col items-center justify-center p-2 rounded disabled:opacity-30 ${activeTab === 'empire' ? 'text-indigo-400 bg-gray-800' : 'text-gray-500'}`}><Briefcase size={20} /><span className="text-[10px] mt-1 font-bold">Ops</span></button>
+                    ) : (
+                        <button disabled className="flex flex-col items-center justify-center p-2 rounded opacity-20"><Briefcase size={20} /><span className="text-[10px] mt-1 font-bold">Ops</span></button>
                     )}
-                    {showAdmin && (
-                        <button onClick={() => setActiveTab('admin')} className={`flex flex-col items-center justify-center p-2 rounded ${activeTab === 'admin' ? 'text-red-400 bg-gray-800' : 'text-gray-500'}`}><Lock size={20} /><span className="text-[10px] mt-1 font-bold">Admin</span></button>
-                    )}
+                    <button onClick={() => setActiveTab('heat')} disabled={modal || eventQueue.length > 0} className={`flex flex-col items-center justify-center p-2 rounded disabled:opacity-30 ${activeTab === 'heat' ? 'text-red-400 bg-gray-800' : 'text-gray-500'}`}><Mask size={20} /><span className="text-[10px] mt-1 font-bold">Heat</span></button>
                     <button onClick={() => setActiveTab('finances')} disabled={modal || eventQueue.length > 0} className={`flex flex-col items-center justify-center p-2 rounded disabled:opacity-30 ${activeTab === 'finances' ? 'text-indigo-400 bg-gray-800' : 'text-gray-500'}`}><Landmark size={20} /><span className="text-[10px] mt-1 font-bold">Finances</span></button>
                 </div>
             </div>
