@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>County Lines Manager</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome (Replacing Lucide for standalone compatibility) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        body { background-color: #0f172a; color: white; touch-action: manipulation; }
+        /* Disable select for app-like feel */
+        .no-select { -webkit-user-select: none; user-select: none; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- ICON MAPPING (Lucide -> FontAwesome) ---
+        // This allows the React code to run without a build step by mapping components to <i> tags
+        const Icon = ({ name, size = 16, className = "" }) => {
+            const style = { fontSize: size };
+            return <i className={`fa-solid ${name} ${className}`} style={style}></i>;
+        };
+
+        const MapPin = (p) => <Icon name="fa-map-marker-alt" {...p} />;
+        const Users = (p) => <Icon name="fa-users" {...p} />;
+        const Home = (p) => <Icon name="fa-home" {...p} />;
+        const DollarSign = (p) => <Icon name="fa-sterling-sign" {...p} />;
+        const TrendingUp = (p) => <Icon name="fa-chart-line" {...p} />;
+        const Briefcase = (p) => <Icon name="fa-briefcase" {...p} />;
+        const Navigation = (p) => <Icon name="fa-location-arrow" {...p} />;
+        const Bus = (p) => <Icon name="fa-bus" {...p} />;
+        const Train = (p) => <Icon name="fa-train" {...p} />;
+        const Clock = (p) => <Icon name="fa-clock" {...p} />;
+        const ShieldAlert = (p) => <Icon name="fa-shield-halved" {...p} />;
+        const Skull = (p) => <Icon name="fa-skull" {...p} />;
+        const Package = (p) => <Icon name="fa-box" {...p} />;
+        const Sprout = (p) => <Icon name="fa-seedling" {...p} />;
+        const AlertTriangle = (p) => <Icon name="fa-triangle-exclamation" {...p} />;
+        const ArrowRightCircle = (p) => <Icon name="fa-circle-arrow-right" {...p} />;
+        const RotateCcw = (p) => <Icon name="fa-rotate-left" {...p} />;
+        const Hourglass = (p) => <Icon name="fa-hourglass-half" {...p} />;
+        const Scale = (p) => <Icon name="fa-scale-balanced" {...p} />;
+        const Cigarette = (p) => <Icon name="fa-joint" {...p} />; 
+        const HeartPulse = (p) => <Icon name="fa-heart-pulse" {...p} />;
+        const ShoppingBag = (p) => <Icon name="fa-bag-shopping" {...p} />;
+        const UserPlus = (p) => <Icon name="fa-user-plus" {...p} />;
+        const UserMinus = (p) => <Icon name="fa-user-minus" {...p} />;
+        const PlusCircle = (p) => <Icon name="fa-circle-plus" {...p} />;
+        const Landmark = (p) => <Icon name="fa-landmark" {...p} />;
+        const Bitcoin = (p) => <Icon name="fa-bitcoin" {...p} />;
+        const RefreshCw = (p) => <Icon name="fa-rotate" {...p} />;
+        const TicketX = (p) => <Icon name="fa-ticket" {...p} />;
+        const Plus = (p) => <Icon name="fa-plus" {...p} />;
+        const Minus = (p) => <Icon name="fa-minus" {...p} />;
+        const Maximize2 = (p) => <Icon name="fa-maximize" {...p} />;
+        const LogOut = (p) => <Icon name="fa-right-from-bracket" {...p} />;
+        const Dumbbell = (p) => <Icon name="fa-dumbbell" {...p} />;
+        const BookOpen = (p) => <Icon name="fa-book-open" {...p} />;
+        const Utensils = (p) => <Icon name="fa-utensils" {...p} />;
+        const Bed = (p) => <Icon name="fa-bed" {...p} />;
+        const PlayCircle = (p) => <Icon name="fa-circle-play" {...p} />;
+        const Zap = (p) => <Icon name="fa-bolt" {...p} />;
+        const AlertOctagon = (p) => <Icon name="fa-land-mine-on" {...p} />;
+        const Lock = (p) => <Icon name="fa-lock" {...p} />;
+        const ArrowDownCircle = (p) => <Icon name="fa-circle-arrow-down" {...p} />;
+        const Save = (p) => <Icon name="fa-floppy-disk" {...p} />;
+
+        // --- GAME DATA ---
+        
+        const LOCATIONS = [
+            { id: 'lon', name: 'London (The Ends)', type: 'city', volatility: 0.1, distance: 0, contact: { name: 'Prestige Car Wash', fee: 0.25, time: 2, desc: "Fast & Expensive" } },
+            { id: 'col', name: 'Colchester', type: 'country', volatility: 0.2, distance: 60, contact: { name: 'Local Pub Landlord', fee: 0.15, time: 6, desc: "Standard Service" } },
+            { id: 'nth', name: 'Northampton', type: 'country', volatility: 0.25, distance: 70, contact: { name: 'Mo at King Kebab', fee: 0.10, time: 12, desc: "Slow but Cheap" } },
+            { id: 'bri', name: 'Bristol', type: 'country', volatility: 0.3, distance: 120, contact: { name: 'Artist Collective', fee: 0.18, time: 5, desc: "Discreet" } },
+            { id: 'smt', name: 'Smethwick', type: 'country', volatility: 0.35, distance: 130, contact: { name: 'Dodgy Garage', fee: 0.12, time: 10, desc: "Good Rates" } },
+            { id: 'whi', name: 'Whitby', type: 'country', volatility: 0.4, distance: 240, contact: { name: 'Fish & Chip Shop', fee: 0.20, time: 4, desc: "Cash Heavy" } },
+            { id: 'mid', name: 'Middlesbrough', type: 'country', volatility: 0.5, distance: 250, contact: { name: 'Scrap Yard', fee: 0.15, time: 8, desc: "No Questions" } },
+            { id: 'edi', name: 'Edinburgh', type: 'country', volatility: 0.45, distance: 400, contact: { name: 'Casino Fixer', fee: 0.30, time: 1, desc: "Instant & Pricey" } },
+            { id: 'pet', name: 'Peterhead', type: 'country', volatility: 0.6, distance: 550, contact: { name: 'Trawler Captain', fee: 0.10, time: 24, desc: "Very Slow" } },
+        ];
+
+        const PRODUCTS = [
+            { id: 'p7', name: 'Nitrous', label: 'Box', unit: 'Balloon', baseBuy: 15, minSell: 2.50, maxSell: 2.50, conversion: 24 },
+            { id: 'p1', name: 'Weed', label: 'Lb', unit: '8th', baseBuy: 1600, minSell: 20, maxSell: 30, conversion: 128 },
+            { id: 'p3', name: 'Crack', label: 'Oz', unit: 'Rock', baseBuy: 1200, minSell: 15, maxSell: 25, conversion: 80 },
+            { id: 'p8', name: 'Pills', label: 'Pack', unit: 'Pill', baseBuy: 5000, minSell: 10, maxSell: 15, conversion: 1000 },
+            { id: 'p4', name: 'Heroin', label: 'Kilo', unit: 'bag', baseBuy: 35000, minSell: 45, maxSell: 55, conversion: 2000 },
+            { id: 'p2', name: 'Coke', label: 'Kilo', unit: 'pkt', baseBuy: 45000, minSell: 45, maxSell: 55, conversion: 2500, demand: 1.75 }, 
+        ];
+
+        const OPERATION_TYPES = {
+            street: { name: 'Street Runners', cost: 0, risk: 0.15, speed: 4, processingSpeed: 0.5, description: "High risk. Slow processing." },
+            cuckoo_old: { name: 'Cuckoo (Elderly)', cost: 500, risk: 0.25, speed: 5, processingSpeed: 2, description: "High risk. Moderate processing." },
+            cuckoo_user: { name: 'Cuckoo (User)', cost: 1500, risk: 0.10, speed: 6, processingSpeed: 4, description: "Medium risk. Fast processing." },
+            rental: { name: 'Luxury Rental', cost: 5000, risk: 0.02, speed: 10, processingSpeed: 8, description: "Low risk. Industrial efficiency." }
+        };
+
+        const TIME_ACTIONS = [
+            { id: 'skin', name: 'Skin Up', time: 1, cost: 0, stress: -15, health: 0, strength: 0, intel: 0, icon: Cigarette, desc: "Relax (-Stress)" },
+            { id: 'gym', name: 'Gym', time: 2, cost: 10, stress: -10, health: 2, strength: 3, intel: 0, icon: Dumbbell, desc: "Train (+Str)" },
+            { id: 'study', name: 'Study', time: 3, cost: 0, stress: 5, health: 0, strength: 0, intel: 2, icon: BookOpen, desc: "Learn (+Int)" },
+            { id: 'eat', name: 'Nandos', time: 1, cost: 15, stress: -5, health: 10, strength: 0, intel: 0, icon: Utensils, desc: "Eat (+Health)" },
+            { id: 'sleep_trap', name: 'Sleep at Trap', time: 8, cost: 0, stress: 0, health: 0, strength: 0, intel: 0, icon: Home, desc: "Pass time (8h)" },
+            { id: 'hotel', name: 'Hotel', time: 8, cost: 80, stress: -100, health: 20, strength: 0, intel: 0, icon: Bed, desc: "Rest (++Health)" }
+        ];
+
+        const DIFFICULTY_SETTINGS = {
+            hard: {
+                name: "ROADMAN (Hard)",
+                cash: 200,
+                debt: 10000,
+                limit: 7,
+                desc: "You lost Miz's pack. You have £200 and 7 days to pay £10k or you die.",
+                introTitle: "BAD NEWS",
+                introText: "Listen. Big problem.\n\nYou were running a pack for Miz—2 kilos of Cali weed. Some nitty on the coach to Donny snatched the bag while you were sleeping.\n\nMiz ain't trying to hear no excuses. He says you owe him £10k for the lost food.\n\nYou got 7 Days to pay up. If you don't have the p's by Day 8... it's lights out.\n\nHere's £200. Get to work."
+            },
+            normal: {
+                name: "SCAMMER (Normal)",
+                cash: 5200,
+                debt: 10000,
+                limit: 7,
+                desc: "Miz wants his £10k in 7 days. Your boy hit a bank scam to give you a £5k head start.",
+                introTitle: "HEAD START",
+                introText: "You lost Miz's pack. He wants £10k in 7 days or you're dead.\n\nLuckily, your boy managed to hit a quick bank transfer scam for you. You've got £5,200 to start with.\n\nFlip it fast. Pay Miz. Stay alive."
+            },
+            easy: {
+                name: "HYPEBEAST (Easy)",
+                cash: 9000,
+                debt: 0,
+                limit: null,
+                desc: "You made £9k flipping Supreme. No debt. No time limit. Just building an empire.",
+                introTitle: "NEW PLUG",
+                introText: "You've made a killing reselling streetwear. You're sitting on £9k cash.\n\nYou met a plug in Camden who can sort you with weight.\n\nNo debts. No time limits. Just build your empire."
+            }
+        };
+
+        const formatMoney = (amount) => {
+            if (isNaN(amount)) return "£0";
+            return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP', maximumFractionDigits: 0 }).format(amount);
+        };
+        const formatTime = (hour) => `${hour.toString().padStart(2, '0')}:00`;
+
+        // --- MAIN COMPONENT ---
+        function CountyLinesGame() {
+            const [gameKey, setGameKey] = useState(0); 
+            const [gameState, setGameState] = useState('menu'); 
+            const [difficulty, setDifficulty] = useState('hard');
+            const [hasSave, setHasSave] = useState(false);
+
+            // --- Game State ---
+            const [productsConfig, setProductsConfig] = useState(PRODUCTS);
+            const [day, setDay] = useState(1);
+            const [hour, setHour] = useState(9);
+            const [cash, setCash] = useState(0); 
+            const [bank, setBank] = useState(0);    
+            const [crypto, setCrypto] = useState(0); 
+            const [debt, setDebt] = useState(0); 
+            const [stress, setStress] = useState(0); 
+            const [health, setHealth] = useState(100);
+            const [strength, setStrength] = useState(10);
+            const [intel, setIntel] = useState(10);
+            
+            const [inventory, setInventory] = useState({ p1: 0, p2: 0, p3: 0, p4: 0, p5: 0, p6: 0, p7: 0, p8: 0 });
+            const [location, setLocation] = useState(LOCATIONS[0]);
+            const [prices, setPrices] = useState({});
+            const [btcPrice, setBtcPrice] = useState(25000); 
+            const [crew, setCrew] = useState({ paid: 0, street: 0 }); 
+            const [operations, setOperations] = useState({}); 
+            const [laundering, setLaundering] = useState([]);
+            const [bannedLocations, setBannedLocations] = useState({}); 
+            const [eventQueue, setEventQueue] = useState([]); 
+
+            // Admin State
+            const [adminClicks, setAdminClicks] = useState(0);
+            const [showAdmin, setShowAdmin] = useState(false);
+
+            const [transferAmounts, setTransferAmounts] = useState({});
+            const [activeTab, setActiveTab] = useState('market'); 
+            const [modal, setModal] = useState(null); 
+            const [logs, setLogs] = useState([]);
+
+            // --- Initialization ---
+            useEffect(() => {
+                const save = localStorage.getItem('countyLinesSave_v1');
+                if (save) setHasSave(true);
+                generateNewPrices();
+            }, [gameKey]);
+
+            // --- Persistence ---
+            useEffect(() => {
+                if (gameState === 'playing') {
+                const saveState = {
+                    day, hour, cash, bank, crypto, debt, stress, health, strength, intel,
+                    inventory, location, prices, btcPrice, crew, operations, laundering,
+                    bannedLocations, productsConfig, logs, difficulty, gameState
+                };
+                localStorage.setItem('countyLinesSave_v1', JSON.stringify(saveState));
+                }
+            }, [day, hour, cash, bank, crypto, debt, stress, health, strength, intel, inventory, location, prices, btcPrice, crew, operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState]);
+
+            const loadGame = () => {
+                const saved = localStorage.getItem('countyLinesSave_v1');
+                if (saved) {
+                    try {
+                        const data = JSON.parse(saved);
+                        setDay(data.day);
+                        setHour(data.hour);
+                        setCash(data.cash);
+                        setBank(data.bank);
+                        setCrypto(data.crypto);
+                        setDebt(data.debt);
+                        setStress(data.stress);
+                        setHealth(data.health);
+                        setStrength(data.strength);
+                        setIntel(data.intel);
+                        setInventory(data.inventory);
+                        setLocation(data.location);
+                        setPrices(data.prices);
+                        setBtcPrice(data.btcPrice);
+                        setCrew(data.crew);
+                        setOperations(data.operations);
+                        setLaundering(data.laundering);
+                        setBannedLocations(data.bannedLocations);
+                        setProductsConfig(data.productsConfig || PRODUCTS);
+                        setLogs(data.logs);
+                        setDifficulty(data.difficulty);
+                        setGameState('playing');
+                        
+                        addLog("Game Loaded. Welcome back.");
+                    } catch (e) {
+                        console.error("Failed to load save", e);
+                        alert("Save file corrupted.");
+                    }
+                }
+            };
+
+            // --- Helpers ---
+            const getLocalOperations = () => {
+                return Object.entries(operations).filter(([_, op]) => op.locationId === location.id);
+            };
+
+            const getCollectableCashAtLocation = (locId) => {
+                const ops = Object.values(operations).filter(op => op.locationId === locId);
+                return ops.reduce((acc, op) => acc + (op.cash || 0), 0);
+            };
+
+            const getStockAtLocation = (locId) => {
+                const ops = Object.values(operations).filter(op => op.locationId === locId);
+                let total = 0;
+                ops.forEach(op => {
+                    Object.values(op.stock).forEach(val => total += val);
+                });
+                return Math.floor(total);
+            };
+
+            const updateTransferAmount = (opId, prodId, delta, max) => {
+                const key = `${opId}_${prodId}`;
+                setTransferAmounts(prev => {
+                    const current = prev[key] || 0;
+                    let next = current + delta;
+                    if (delta === 'max') next = max;
+                    if (next < 0) next = 0;
+                    if (next > max) next = max;
+                    return { ...prev, [key]: next };
+                });
+            };
+
+            const calculateTravelDetails = (targetLoc) => {
+                const dist = Math.abs(targetLoc.distance - location.distance);
+                const trainHours = Math.max(1, Math.ceil(dist / 80) + 1); 
+                const coachHours = Math.max(2, Math.ceil(dist / 40) + 1);
+                const trainCost = 20 + (dist * 0.4);
+                const coachCost = trainCost * 0.4;
+
+                return {
+                    dist,
+                    train: { hours: trainHours, cost: Math.floor(trainCost) },
+                    coach: { hours: coachHours, cost: Math.floor(coachCost) },
+                    free: { hours: coachHours, cost: 0 }
+                };
+            };
+
+            const generateNewPrices = (currentProducts = productsConfig) => {
+                const newPrices = {};
+                LOCATIONS.forEach(loc => {
+                newPrices[loc.id] = {};
+                currentProducts.forEach(prod => {
+                    const fluctuation = loc.type === 'city' ? 0.1 : loc.volatility;
+                    const buyRandom = 1 + (Math.random() * fluctuation * 2 - fluctuation);
+                    const markup = loc.type === 'country' ? 1.5 : 1.0;
+                    
+                    const buyPrice = prod.id === 'p7' 
+                        ? prod.baseBuy 
+                        : Math.floor(prod.baseBuy * markup * buyRandom);
+
+                    const countryBoost = loc.type === 'country' ? 1.2 : 1.0; 
+                    const baseSell = prod.minSell + (Math.random() * (prod.maxSell - prod.minSell));
+                    const sellPrice = prod.id === 'p7'
+                        ? 2.50
+                        : Math.floor(baseSell * countryBoost);
+
+                    newPrices[loc.id][prod.id] = { buy: buyPrice, sell: sellPrice };
+                });
+                });
+                setPrices(newPrices);
+                setBtcPrice(prev => Math.floor((prev || 25000) * (0.95 + Math.random() * 0.10)));
+            };
+
+            // --- Admin ---
+            const handleHeaderClick = () => {
+                setAdminClicks(prev => {
+                    const next = prev + 1;
+                    if (next >= 5) {
+                        setShowAdmin(prevShow => {
+                            const newState = !prevShow;
+                            addLog(newState ? "DEV MODE ENABLED." : "DEV MODE DISABLED.");
+                            return newState;
+                        });
+                        return 0;
+                    }
+                    return next;
+                });
+            };
+
+            const updateProductConfig = (id, field, val) => {
+                setProductsConfig(prev => prev.map(p => {
+                    if (p.id === id) {
+                        return { ...p, [field]: parseFloat(val) };
+                    }
+                    return p;
+                }));
+            };
+
+            const applyAdminChanges = () => {
+                generateNewPrices(productsConfig);
+                addLog("Admin: Config applied & prices refreshed.");
+            };
+
+            // --- Game Lifecycle ---
+
+            const startGame = (modeKey) => {
+                localStorage.removeItem('countyLinesSave_v1');
+                const settings = DIFFICULTY_SETTINGS[modeKey];
+                setDifficulty(modeKey);
+                setCash(settings.cash);
+                setDebt(settings.debt);
+                setDay(1);
+                setHour(9);
+                setBank(0);
+                setCrypto(0);
+                setStress(0);
+                setHealth(100);
+                setStrength(10);
+                setIntel(10);
+                
+                const initialInv = {};
+                productsConfig.forEach(p => initialInv[p.id] = 0);
+                setInventory(initialInv);
+                
+                setLocation(LOCATIONS[0]);
+                setCrew({ paid: 0, street: 0 });
+                setOperations({});
+                setLaundering([]);
+                setBannedLocations({});
+                setEventQueue([]);
+                setTransferAmounts({});
+                setActiveTab('market');
+                setLogs([settings.desc]);
+                generateNewPrices(productsConfig);
+                setModal({
+                    title: settings.introTitle,
+                    message: settings.introText,
+                    type: "intro"
+                });
+                setGameState('playing');
+            };
+
+            const confirmQuit = () => {
+                setModal({
+                    title: "Quit to Menu?",
+                    message: "Progress is saved automatically.",
+                    type: "confirm",
+                    onConfirm: () => { 
+                        setModal(null); 
+                        setGameState('menu'); 
+                        setGameKey(k => k + 1); 
+                    }
+                });
+            };
+
+            const quitToMenu = () => {
+                setGameState('menu');
+                setModal(null);
+                setGameKey(k => k + 1);
+            };
+
+            const addLog = (msg) => setLogs(prev => [msg, ...prev.slice(0, 19)]);
+
+            // --- Core Loop ---
+
+            const passTime = (hoursPassed, force = false) => {
+                if (modal && !force) return;
+
+                let newHour = hour + hoursPassed;
+                let daysPassed = 0;
+
+                while (newHour >= 24) {
+                    newHour -= 24;
+                    daysPassed++;
+                }
+
+                setHour(newHour);
+                
+                processOperations(hoursPassed);
+                processLaundering(hoursPassed);
+
+                if (daysPassed > 0) {
+                    const newDay = day + daysPassed;
+                    setDay(newDay);
+                    
+                    const limit = DIFFICULTY_SETTINGS[difficulty].limit;
+                    if (limit && newDay > limit && debt > 0) {
+                        localStorage.removeItem('countyLinesSave_v1');
+                        setModal({
+                            title: "GAME OVER",
+                            message: "Time's up fam.\n\nMiz pulled up on you. You didn't have the paper.\n\n*Bang*",
+                            type: 'gameover'
+                        });
+                        return;
+                    }
+
+                    processDailyUpdates(daysPassed);
+                    addLog(limit ? `🌅 Day ${newDay}. ${limit - newDay + 1} days left.` : `🌅 Day ${newDay}.`);
+                    generateNewPrices();
+                }
+            };
+
+            const processLaundering = (hoursPassed) => {
+                setLaundering(prev => {
+                    let nextLaundering = prev.map(job => ({ ...job, hoursLeft: job.hoursLeft - hoursPassed }));
+                    const completed = nextLaundering.filter(job => job.hoursLeft <= 0);
+                    const pending = nextLaundering.filter(job => job.hoursLeft > 0);
+
+                    if (completed.length > 0) {
+                        let totalCleaned = 0;
+                        completed.forEach(job => {
+                            totalCleaned += job.payout;
+                        });
+                        setBank(b => b + totalCleaned);
+                        addLog(`✅ Money laundered: ${formatMoney(totalCleaned)} added to Bank.`);
+                    }
+                    return pending;
+                });
+            };
+
+            const processOperations = (hoursPassed) => {
+                setOperations(prevOps => {
+                    const nextOps = { ...prevOps };
+                    let incomeGenerated = false;
+
+                    Object.keys(nextOps).forEach(opId => {
+                        const op = { 
+                            ...nextOps[opId],
+                            stock: { ...nextOps[opId].stock },
+                            processing: { ...nextOps[opId].processing },
+                            sold: { ...nextOps[opId].sold }
+                        };
+                        
+                        const opType = OPERATION_TYPES[op.type];
+                        if (!op.locationId) return;
+                        const locPrices = prices[op.locationId] || {}; 
+
+                        const processingCapacity = opType.processingSpeed * hoursPassed; 
+                        
+                        productsConfig.forEach(prod => {
+                            const prodId = prod.id;
+                            if (op.processing[prodId] === undefined) op.processing[prodId] = 0;
+                            if (op.stock[prodId] === undefined) op.stock[prodId] = 0;
+
+                            if (op.processing[prodId] > 0) {
+                                const amountToProcess = Math.min(processingCapacity, op.processing[prodId]);
+                                op.processing[prodId] -= amountToProcess;
+                                op.stock[prodId] += amountToProcess * prod.conversion; 
+                            }
+                        });
+
+                        const expectedSales = opType.speed * hoursPassed; 
+                        const guaranteedSales = Math.floor(expectedSales);
+                        const extraSaleChance = expectedSales - guaranteedSales;
+                        
+                        let salesCapacity = guaranteedSales;
+                        if (Math.random() < extraSaleChance) salesCapacity += 1;
+
+                        productsConfig.forEach(prod => {
+                            const prodId = prod.id;
+                            const streetPrice = locPrices[prodId]?.sell || 0;
+                            
+                            const demand = prod.demand || 1;
+                            const baseSales = opType.speed * hoursPassed * demand;
+                            const actualSales = Math.floor(baseSales * (0.8 + Math.random() * 0.4)); 
+
+                            if (actualSales >= 1 && op.stock[prodId] >= 1 && streetPrice > 0) {
+                                const amountToSell = Math.min(actualSales, Math.floor(op.stock[prodId]));
+                                const revenue = amountToSell * streetPrice;
+                                
+                                op.stock[prodId] -= amountToSell;
+                                if(!op.sold[prodId]) op.sold[prodId] = 0;
+                                op.sold[prodId] += amountToSell; 
+                                op.cash += revenue;
+                                
+                                incomeGenerated = true;
+                            }
+                        });
+
+                        const riskFloor = op.crewType === 'street' ? 3 : 0;
+                        if (incomeGenerated) {
+                            op.risk += (opType.risk * hoursPassed);
+                        } else {
+                            op.risk -= (0.2 * hoursPassed); 
+                        }
+                        op.risk = Math.max(riskFloor, Math.min(100, op.risk));
+                        
+                        nextOps[opId] = op;
+                    });
+                    return nextOps;
+                });
+            };
+            
+            const processDailyUpdates = (daysPassed) => {
+                let raidMessages = [];
+                let currentDebt = debt;
+                
+                const newEvents = [];
+                
+                Object.keys(operations).forEach(opId => {
+                    const op = operations[opId];
+                    const raidChance = op.risk / 4; 
+                    
+                    if (Math.random() * 100 < raidChance) {
+                        let stockLost = 0;
+                        productsConfig.forEach(p => {
+                            stockLost += (op.stock[p.id] || 0) + ((op.processing[p.id] || 0) * p.conversion);
+                        });
+
+                        newEvents.push({
+                            type: 'raid',
+                            opId: opId,
+                            locationId: op.locationId,
+                            cashAtRisk: op.cash,
+                            stockAtRisk: Math.floor(stockLost)
+                        });
+                    }
+                });
+
+                setEventQueue(prev => [...prev, ...newEvents]);
+
+                setOperations(prevOps => {
+                    const nextOps = { ...prevOps };
+                    Object.keys(nextOps).forEach(opId => {
+                        const op = { ...nextOps[opId], processing: { ...nextOps[opId].processing } };
+                        if (op.hasGrow) {
+                            op.processing['p1'] = (op.processing['p1'] || 0) + (0.1 * daysPassed); 
+                        }
+                        nextOps[opId] = op;
+                    });
+                    return nextOps;
+                });
+
+                const interestEarned = Math.floor(bank * 0.01 * daysPassed);
+                if (interestEarned > 0) {
+                    setBank(b => b + interestEarned);
+                    addLog(`🏦 Bank Interest: +${formatMoney(interestEarned)}`);
+                }
+
+                if (debt > 0) {
+                    const debtInterest = Math.floor(currentDebt * 0.01 * daysPassed);
+                    setDebt(d => d + debtInterest);
+                    if (debtInterest > 0) addLog(`📉 Debt increased by ${formatMoney(debtInterest)}.`);
+                }
+                
+                setStress(s => Math.max(0, s - (10 * daysPassed)));
+            };
+
+            const resolveRaid = (choice) => {
+                const currentEvent = eventQueue[0];
+                if (!currentEvent) return;
+
+                const op = operations[currentEvent.opId];
+                if (!op) {
+                    setEventQueue(prev => prev.slice(1));
+                    return;
+                }
+
+                const locName = LOCATIONS.find(l=>l.id===op.locationId)?.name;
+                const opName = OPERATION_TYPES[op.type].name;
+                let logMsg = "";
+
+                if (choice === 'flush') {
+                    const saveCash = Math.random() < 0.75;
+                    const cashSaved = saveCash ? op.cash : 0;
+                    
+                    if (saveCash) {
+                        setCash(c => c + cashSaved); 
+                        logMsg = `Raid in ${locName}: Flushed stash. Saved ${formatMoney(cashSaved)}. Runner escaped.`;
+                    } else {
+                        logMsg = `Raid in ${locName}: Flushed stash. Cash seized. Runner escaped.`;
+                    }
+                    setCrew(prev => ({ ...prev, [op.crewType]: prev[op.crewType] + 1 }));
+
+                } else if (choice === 'escape') {
+                    const saveStock = Math.random() < 0.75;
+
+                    if (saveStock) {
+                        setInventory(prev => {
+                            const newInv = { ...prev };
+                            productsConfig.forEach(p => {
+                                const processedUnits = (op.stock[p.id] || 0) / p.conversion; 
+                                const processingUnits = op.processing[p.id] || 0;
+                                newInv[p.id] = (newInv[p.id] || 0) + processedUnits + processingUnits;
+                            });
+                            return newInv;
+                        });
+                        logMsg = `Raid in ${locName}: Escaped with stock. Lost cash. Runner escaped.`;
+                    } else {
+                        logMsg = `Raid in ${locName}: Fumbled escape. Lost everything. Runner escaped.`;
+                    }
+                    setCrew(prev => ({ ...prev, [op.crewType]: prev[op.crewType] + 1 }));
+
+                } else if (choice === 'fallguy') {
+                    setCash(c => c + op.cash);
+                    setInventory(prev => {
+                        const newInv = { ...prev };
+                        productsConfig.forEach(p => {
+                            const processedUnits = (op.stock[p.id] || 0) / p.conversion; 
+                            const processingUnits = op.processing[p.id] || 0;
+                            newInv[p.id] = (newInv[p.id] || 0) + processedUnits + processingUnits;
+                        });
+                        return newInv;
+                    });
+                    setBannedLocations(prev => ({ ...prev, [op.locationId]: day + 7 }));
+                    logMsg = `Raid in ${locName}: Used Fall Guy. Saved assets. Runner jailed. Town HOT.`;
+                }
+
+                setOperations(prev => {
+                    const next = { ...prev };
+                    delete next[currentEvent.opId];
+                    return next;
+                });
+
+                addLog(logMsg);
+                setEventQueue(prev => prev.slice(1));
+            };
+
+            const performAction = (action) => {
+                if (cash < action.cost) {
+                    setModal({ title: "Skint", message: "You can't afford that.", type: 'error' });
+                    return;
+                }
+                const newHealth = Math.min(100, Math.max(0, health + action.health));
+                setCash(c => c - action.cost);
+                setStress(s => Math.max(0, s + action.stress)); 
+                setHealth(newHealth);
+                setStrength(s => Math.min(100, s + action.strength));
+                setIntel(i => Math.min(100, i + action.intel));
+                
+                if (newHealth <= 0) {
+                    setModal({ title: "HOSPITALIZED", message: "You passed out. Woke up in A&E.\nLost 24 hours.", type: 'error' });
+                    passTime(24, true); 
+                } else {
+                    setModal(null);
+                    passTime(action.time, true);
+                    addLog(`Action: ${action.name}.`);
+                }
+            };
+
+            const travelTo = (targetLocation, mode) => {
+                if (modal || eventQueue.length > 0) return; 
+                if (targetLocation.id === location.id) return;
+                const details = calculateTravelDetails(targetLocation);
+                const { hours, cost } = details[mode];
+                
+                if (cash < cost) {
+                    setModal({ title: "Skint", message: `You need ${formatMoney(cost)} for the ${mode}.`, type: 'error' });
+                    return;
+                }
+
+                if (stress >= 100) {
+                    setModal({ title: "Mental Breakdown", message: "Too stressed to travel.", type: 'error' });
+                    return;
+                }
+
+                if (mode === 'free') {
+                    if (Math.random() < 0.05) { 
+                        const newInv = {};
+                        productsConfig.forEach(p => newInv[p.id] = 0);
+                        setInventory(newInv); 
+                        setModal({
+                            title: "CAUGHT",
+                            message: "Caught fare dodging. Police seized your bag.",
+                            type: 'error'
+                        });
+                        addLog("Caught bumping transport. Inventory seized.");
+                    }
+                }
+
+                setCash(c => c - cost);
+                setStress(s => Math.min(100, s + 5 + (hours * 1))); 
+                setLocation(targetLocation);
+                passTime(hours);
+                addLog(`Arrived in ${targetLocation.name}.`);
+                
+                if (targetLocation.id === 'lon') setActiveTab('market');
+                else setActiveTab('empire'); 
+            };
+
+            const buyProduct = (prodId) => {
+                if (modal || eventQueue.length > 0) return;
+                if (location.id !== 'lon') return;
+                const priceData = prices[location.id]?.[prodId];
+                if (!priceData) return;
+                const maxBuy = Math.floor(cash / priceData.buy);
+                if (maxBuy <= 0) return;
+                let timeCost = Math.floor(Math.random() * 2) + 1;
+                const amount = 1; 
+                setCash(c => c - (priceData.buy * amount));
+                setInventory(inv => ({ ...inv, [prodId]: (inv[prodId] || 0) + amount }));
+                passTime(timeCost);
+            };
+
+            const recruitCrew = (type) => {
+                if (modal || eventQueue.length > 0) return;
+                const banDay = bannedLocations[location.id];
+                if (banDay && day < banDay) {
+                    setModal({ title: "Area Too Hot", message: `Town banned until Day ${banDay}.`, type: 'error' });
+                    return;
+                }
+                if (type === 'paid') {
+                    if (cash < 500) {
+                        setModal({ title: "Funds Needed", message: "Pros cost £500.", type: 'error' });
+                        return;
+                    }
+                    setCash(c => c - 500);
+                    setCrew(prev => ({ ...prev, paid: prev.paid + 1 }));
+                    addLog("Recruited a Pro Runner.");
+                } else {
+                    setCrew(prev => ({ ...prev, street: prev.street + 1 }));
+                    addLog("Recruited a Street Kid.");
+                }
+                passTime(1);
+            };
+
+            const setupOperation = (typeKey) => {
+                if (modal || eventQueue.length > 0) return;
+                if (location.type === 'city') return;
+                
+                let selectedCrewType = null;
+                if (crew.paid > 0) selectedCrewType = 'paid';
+                else if (crew.street > 0) selectedCrewType = 'street';
+
+                if (!selectedCrewType) {
+                    setModal({ title: "No Staff", message: "Recruit a runner first.", type: 'error' });
+                    return;
+                }
+
+                const opData = OPERATION_TYPES[typeKey];
+                if (cash < opData.cost) {
+                    setModal({ title: "Funds", message: `Need ${formatMoney(opData.cost)}.`, type: 'error' });
+                    return;
+                }
+
+                setCash(c => c - opData.cost);
+                setCrew(prev => ({ ...prev, [selectedCrewType]: prev[selectedCrewType] - 1 }));
+                
+                const initialRisk = selectedCrewType === 'street' ? 3 : 0; 
+                const newOpId = `op_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                const initialStock = {};
+                const initialProcessing = {};
+                const initialSold = {};
+                productsConfig.forEach(p => {
+                    initialStock[p.id] = 0;
+                    initialProcessing[p.id] = 0;
+                    initialSold[p.id] = 0;
+                });
+
+                setOperations(prev => ({
+                    ...prev,
+                    [newOpId]: { 
+                        locationId: location.id,
+                        type: typeKey, 
+                        stock: initialStock, 
+                        processing: initialProcessing, 
+                        sold: initialSold,
+                        cash: 0, 
+                        risk: initialRisk, 
+                        hasGrow: false,
+                        crewType: selectedCrewType
+                    }
+                }));
+                passTime(4);
+                addLog(`Established ${opData.name}.`);
+            };
+
+            const manageOp_Restock = (opId, prodId) => {
+                if (modal || eventQueue.length > 0) return;
+                const amount = transferAmounts[`${opId}_${prodId}`] || 0;
+                if (amount <= 0) return;
+                if (inventory[prodId] < amount) return;
+
+                passTime(1); 
+                setInventory(prev => ({ ...prev, [prodId]: prev[prodId] - amount }));
+                setOperations(prev => ({
+                    ...prev,
+                    [opId]: {
+                        ...prev[opId],
+                        processing: { 
+                            ...prev[opId].processing, 
+                            [prodId]: (prev[opId].processing[prodId] || 0) + amount 
+                        }
+                    }
+                }));
+                setTransferAmounts(prev => ({ ...prev, [`${opId}_${prodId}`]: 0 }));
+            };
+
+            const dropAllStock = (opId, prodId) => {
+                if (modal || eventQueue.length > 0) return;
+                const amount = inventory[prodId] || 0;
+                if (amount <= 0) return;
+
+                passTime(1); 
+                setInventory(prev => ({ ...prev, [prodId]: 0 }));
+                setOperations(prev => ({
+                    ...prev,
+                    [opId]: {
+                        ...prev[opId],
+                        processing: { 
+                            ...prev[opId].processing, 
+                            [prodId]: (prev[opId].processing[prodId] || 0) + amount 
+                        }
+                    }
+                }));
+            };
+
+            const manageOp_Collect = (opId) => {
+                if (modal || eventQueue.length > 0) return;
+                const op = operations[opId];
+                if (!op || op.cash <= 0) return;
+                
+                const amount = op.cash;
+                setCash(c => c + amount);
+                const resetSold = {};
+                productsConfig.forEach(p => resetSold[p.id] = 0);
+
+                setOperations(prev => ({
+                    ...prev,
+                    [opId]: { ...prev[opId], cash: 0, sold: resetSold }
+                }));
+                addLog(`Collected ${formatMoney(amount)}.`);
+            };
+
+            const installGrow = (opId) => {
+                if (modal || eventQueue.length > 0) return;
+                const cost = 2000;
+                if (cash < cost) return;
+                setCash(c => c - cost);
+                setOperations(prev => ({
+                    ...prev,
+                    [opId]: { ...prev[opId], hasGrow: true }
+                }));
+                passTime(3);
+                addLog("Grow tent installed.");
+            };
+
+            const skinUp = () => {
+                if (modal || eventQueue.length > 0) return;
+                setStress(s => Math.max(0, s - 15));
+                passTime(1);
+                addLog("Skinned up.");
+            };
+
+            const openActionMenu = () => {
+                setModal({
+                    title: "Select Action",
+                    message: "What do you want to do?",
+                    type: "actions"
+                });
+            };
+
+            const launderMoney = (amount) => {
+                if (modal || eventQueue.length > 0) return;
+                if (cash < amount) return;
+                if (amount <= 0) return;
+                if (!location.contact) return;
+
+                const contact = location.contact;
+                const fee = Math.ceil(amount * contact.fee);
+                const cleanAmount = amount - fee;
+
+                setCash(c => c - amount);
+                setLaundering(prev => [
+                    ...prev, 
+                    { id: Date.now(), location: location.name, amount: amount, payout: cleanAmount, hoursLeft: contact.time }
+                ]);
+                addLog(`Laundering ${formatMoney(amount)}.`);
+                passTime(1);
+            };
+
+            const buyCrypto = (amount) => {
+                if (modal || eventQueue.length > 0) return;
+                if (cash < amount) return;
+                const btcAmount = amount / btcPrice;
+                setCash(c => c - amount);
+                setCrypto(c => c + btcAmount);
+                addLog(`Bought ${btcAmount.toFixed(4)} BTC.`);
+                passTime(1);
+            };
+
+            const sellCrypto = (btcAmount) => {
+                if (modal || eventQueue.length > 0) return;
+                if (crypto < btcAmount) return;
+                const val = Math.floor(btcAmount * btcPrice);
+                setCrypto(c => c - btcAmount);
+                setCash(c => c + val); 
+                addLog(`Sold BTC for ${formatMoney(val)}.`);
+                passTime(1);
+            };
+
+            const payDebt = () => {
+                if (modal || eventQueue.length > 0) return;
+                passTime(1);
+                if (cash >= debt) {
+                    setCash(c => c - debt);
+                    setDebt(0);
+                    setModal({ title: "DEBT CLEARED", message: "You are free.", type: "intro" });
+                    addLog("Debt cleared.");
+                } else {
+                    setDebt(d => d - cash);
+                    setCash(0);
+                    addLog("Paid towards debt.");
+                }
+            };
+
+            // --- VIEW: MENU ---
+            if (gameState === 'menu') {
+                return (
+                    <div className="bg-gray-950 min-h-screen text-gray-100 font-sans flex flex-col justify-center items-center p-6 no-select">
+                        <h1 className="text-4xl font-black text-indigo-500 mb-8 uppercase tracking-tighter text-center">County Lines<br/><span className="text-white text-2xl">Manager</span></h1>
+                        {hasSave && (
+                            <button onClick={loadGame} className="w-full max-w-sm bg-indigo-900 border border-indigo-500 p-4 rounded-lg mb-6 flex items-center justify-center gap-2 hover:bg-indigo-800 transition-all shadow-lg shadow-indigo-900/50">
+                                <Save size={20} /> <span className="font-bold text-white">CONTINUE CAMPAIGN</span>
+                            </button>
+                        )}
+                        <div className="w-full max-w-sm space-y-4">
+                            {Object.entries(DIFFICULTY_SETTINGS).map(([key, setting]) => (
+                                <button key={key} onClick={() => startGame(key)} className="w-full bg-gray-900 border border-gray-800 hover:border-indigo-500 p-4 rounded-lg text-left transition-all group relative overflow-hidden">
+                                    <div className="flex justify-between items-center mb-1 relative z-10">
+                                        <span className={`font-bold uppercase ${key === 'hard' ? 'text-red-500' : key === 'normal' ? 'text-yellow-500' : 'text-green-500'}`}>{setting.name}</span>
+                                        <span className="text-xs text-gray-500">{setting.limit ? `${setting.limit} Days` : 'Unlimited'}</span>
+                                    </div>
+                                    <p className="text-xs text-gray-400 relative z-10">{setting.desc}</p>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                );
+            }
+
+            // --- VIEW: GAME ---
+            return (
+                <div key={gameKey} className="bg-gray-950 min-h-screen text-gray-100 font-sans flex flex-col overflow-hidden max-w-md mx-auto border-x border-gray-800 shadow-2xl no-select">
+                {/* MODAL */}
+                {modal && (
+                    <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+                        <div className="bg-gray-900 border border-gray-700 p-6 rounded-lg w-full max-w-sm shadow-2xl relative">
+                            <h3 className={`text-xl font-bold mb-2 ${modal.type === 'error' || modal.type === 'gameover' ? 'text-red-500' : 'text-white'}`}>{modal.title}</h3>
+                            {modal.type === 'actions' ? (
+                                <div className="grid grid-cols-2 gap-2">
+                                    {TIME_ACTIONS.map(act => (
+                                        <button key={act.id} onClick={() => performAction(act)} className="bg-gray-800 hover:bg-gray-700 border border-gray-600 p-3 rounded text-left">
+                                            <div className="flex items-center gap-2 font-bold text-white text-xs mb-1"><act.icon size={14}/> {act.name}</div>
+                                            <div className="text-[10px] text-gray-400">{act.desc}</div>
+                                            <div className="flex justify-between text-[10px] mt-1 font-mono"><span>{act.time}h</span><span className={act.cost > 0 ? "text-red-400" : "text-green-400"}>{act.cost > 0 ? `£${act.cost}` : 'Free'}</span></div>
+                                        </button>
+                                    ))}
+                                    <button onClick={() => setModal(null)} className="col-span-2 mt-2 py-2 text-xs text-gray-500">Cancel</button>
+                                </div>
+                            ) : (
+                                <>
+                                    <p className="text-gray-300 mb-6 whitespace-pre-line">{modal.message}</p>
+                                    <div className="flex gap-2">
+                                        {modal.type === 'confirm' ? (
+                                            <>
+                                                <button onClick={modal.onConfirm} className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded">Confirm</button>
+                                                <button onClick={() => setModal(null)} className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded">Cancel</button>
+                                            </>
+                                        ) : modal.type === 'gameover' ? (
+                                            <button onClick={quitToMenu} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded">Main Menu</button>
+                                        ) : (
+                                            <button onClick={() => setModal(null)} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded">Acknowledge</button>
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                )}
+                
+                {/* RAID EVENT OVERLAY */}
+                {eventQueue.length > 0 && !modal && (() => {
+                    const evt = eventQueue[0];
+                    const locName = LOCATIONS.find(l=>l.id===evt.locationId)?.name;
+                    return (
+                        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+                            <div className="bg-red-900/40 border border-red-500 p-6 rounded-lg w-full max-w-sm shadow-2xl relative backdrop-blur-sm">
+                                <div className="flex justify-center mb-4"><AlertOctagon size={48} className="text-red-500 animate-pulse"/></div>
+                                <h3 className="text-2xl font-black text-white text-center mb-2 uppercase">RAID IN PROGRESS</h3>
+                                <p className="text-white text-center mb-2 font-bold">{locName}</p>
+                                <div className="bg-black/50 p-3 rounded mb-6 text-center">
+                                    <div className="text-gray-400 text-xs uppercase">Assets at Risk</div>
+                                    <div className="text-green-400 font-mono text-lg">{formatMoney(evt.cashAtRisk)}</div>
+                                    <div className="text-white font-mono text-sm">{evt.stockAtRisk} units of stock</div>
+                                </div>
+                                <div className="space-y-3">
+                                    <button onClick={() => resolveRaid('flush')} className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white p-3 rounded text-left"><div className="font-bold text-sm text-blue-400">Flush Stash</div><div className="text-xs text-gray-400">Destroy stock. 75% chance to save Cash. Runner escapes.</div></button>
+                                    <button onClick={() => resolveRaid('escape')} className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white p-3 rounded text-left"><div className="font-bold text-sm text-yellow-500">Escape out Back</div><div className="text-xs text-gray-400">Keep Stock (75% chance). Lose Cash. Lose House.</div></button>
+                                    <button onClick={() => resolveRaid('fallguy')} className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white p-3 rounded text-left"><div className="font-bold text-sm text-green-500">Use Fall Guy</div><div className="text-xs text-gray-400">Keep All Assets. Runner Jailed. Town banned 7 days.</div></button>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })()}
+
+                {/* Header */}
+                <div className="bg-gray-900 p-4 border-b border-gray-800 shadow-md z-10" onClick={handleHeaderClick}>
+                    <div className="flex justify-between items-center mb-4">
+                        <h1 className="text-lg font-black tracking-tighter text-indigo-500 uppercase cursor-pointer select-none">County Lines</h1>
+                        <div className="flex items-center gap-2 bg-gray-800 px-3 py-1 rounded-full border border-gray-700">
+                            <Clock size={14} className="text-indigo-400" />
+                            <span className={`text-xs font-mono font-bold ${limit && day > limit - 2 ? 'text-red-500' : 'text-white'}`}>Day {day} • {formatTime(hour)}</span>
+                        </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                        <div className="bg-gray-800 rounded-full h-3 overflow-hidden border border-gray-700 relative">
+                            <div className="absolute inset-0 flex items-center justify-center text-[8px] font-bold z-10 text-white drop-shadow-md">HEALTH {Math.floor(health)}%</div>
+                            <div className={`h-full ${health < 30 ? 'bg-red-600' : 'bg-green-600'} transition-all duration-300`} style={{ width: `${health}%` }}></div>
+                        </div>
+                        <div className="bg-gray-800 rounded-full h-3 overflow-hidden border border-gray-700 relative">
+                            <div className="absolute inset-0 flex items-center justify-center text-[8px] font-bold z-10 text-white drop-shadow-md">STRESS {Math.floor(stress)}%</div>
+                            <div className={`h-full ${stress > 80 ? 'bg-red-500' : 'bg-blue-500'} transition-all duration-300`} style={{ width: `${stress}%` }}></div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 text-sm font-mono">
+                        <div className="flex flex-col"><span className="text-gray-500 text-xs">Cash (Dirty)</span><span className="text-green-400 font-bold">{formatMoney(cash)}</span></div>
+                        <div className="flex flex-col text-center"><span className="text-gray-500 text-xs">Bank (Clean)</span><span className="text-blue-400 font-bold">{formatMoney(bank)}</span></div>
+                        <div className="flex flex-col text-right"><span className="text-gray-500 text-xs">Location</span><span className="text-white truncate">{location.name}</span></div>
+                    </div>
+                </div>
+
+                {/* Main Content */}
+                <div className="flex-1 overflow-y-auto p-4 pb-24">
+                    {/* ADMIN TAB */}
+                    {activeTab === 'admin' && (
+                        <div className="space-y-4">
+                            <h2 className="text-xl font-bold text-red-500 flex items-center gap-2"><Lock size={20}/> Admin Config</h2>
+                            <p className="text-xs text-gray-500">Edit Game Balance.</p>
+                            {productsConfig.map(p => (
+                                <div key={p.id} className="bg-gray-900 border border-gray-800 p-3 rounded text-xs space-y-2">
+                                    <div className="font-bold text-white flex justify-between"><span>{p.name} ({p.label})</span><span className="text-gray-500">{p.unit}</span></div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div><label className="text-gray-600 block">Min Buy</label><input type="number" value={p.minBuy} onChange={(e) => updateProductConfig(p.id, 'minBuy', e.target.value)} className="bg-gray-800 text-white w-full p-1 rounded border border-gray-700"/></div>
+                                        <div><label className="text-gray-600 block">Max Buy</label><input type="number" value={p.maxBuy} onChange={(e) => updateProductConfig(p.id, 'maxBuy', e.target.value)} className="bg-gray-800 text-white w-full p-1 rounded border border-gray-700"/></div>
+                                        <div><label className="text-gray-600 block">Min Sell</label><input type="number" value={p.minSell} onChange={(e) => updateProductConfig(p.id, 'minSell', e.target.value)} className="bg-gray-800 text-white w-full p-1 rounded border border-gray-700"/></div>
+                                        <div><label className="text-gray-600 block">Max Sell</label><input type="number" value={p.maxSell} onChange={(e) => updateProductConfig(p.id, 'maxSell', e.target.value)} className="bg-gray-800 text-white w-full p-1 rounded border border-gray-700"/></div>
+                                        <div><label className="text-gray-600 block">Conv (Units)</label><input type="number" value={p.conversion} onChange={(e) => updateProductConfig(p.id, 'conversion', e.target.value)} className="bg-gray-800 text-white w-full p-1 rounded border border-gray-700"/></div>
+                                        <div><label className="text-gray-600 block">Demand</label><input type="number" step="0.1" value={p.demand || 1} onChange={(e) => updateProductConfig(p.id, 'demand', e.target.value)} className="bg-gray-800 text-white w-full p-1 rounded border border-gray-700"/></div>
+                                    </div>
+                                </div>
+                            ))}
+                            <button onClick={applyAdminChanges} className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded font-bold">Apply & Refresh Prices</button>
+                        </div>
+                    )}
+                    
+                    {/* MARKET TAB */}
+                    {activeTab === 'market' && (
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-end mb-4">
+                            <h2 className="text-xl font-bold text-white">Supply Market</h2>
+                            {location.type === 'city' ? <span className="text-xs bg-indigo-900 text-indigo-300 px-2 py-1 rounded">Supplier Hub</span> : <span className="text-xs bg-gray-800 text-gray-500 px-2 py-1 rounded">Local Dealers</span>}
+                        </div>
+                        {location.id !== 'lon' && (
+                            <div className="bg-red-900/20 border border-red-700/50 p-3 rounded mb-4 flex gap-2 items-start">
+                                <AlertTriangle className="text-red-600 shrink-0" size={16} /><p className="text-xs text-red-500">Connect Unavailable. You can only BUY stock in <strong>London</strong>. Set up Ops here to SELL.</p>
+                            </div>
+                        )}
+                        {productsConfig.map(prod => {
+                            const priceData = prices[location.id]?.[prod.id];
+                            const owned = inventory[prod.id] || 0;
+                            if (!priceData) return <div key={prod.id} className="text-xs text-gray-600 p-4 text-center">Loading Market Data...</div>;
+                            return (
+                                <div key={prod.id} className="bg-gray-900 p-4 rounded-lg border border-gray-800 flex justify-between items-center">
+                                    <div><h3 className="font-bold text-gray-200">{prod.name}</h3><div className="text-xs text-gray-500 mt-1 flex gap-2"><span className="bg-gray-800 px-1 rounded text-gray-400">Bag: {owned} {prod.label}</span></div></div>
+                                    <div className="text-right">
+                                        <div className="text-lg font-mono text-indigo-400 mb-1">{formatMoney(priceData.buy)}</div>
+                                        <div className="text-[10px] text-gray-600 mb-1">per {prod.label}</div>
+                                        {location.id === 'lon' ? <button onClick={() => buyProduct(prod.id)} disabled={modal || eventQueue.length > 0} className="bg-gray-800 hover:bg-gray-700 text-green-500 px-4 py-2 rounded text-xs font-bold border border-gray-700 disabled:opacity-30">BUY</button> : <span className="text-xs text-gray-600 bg-gray-950 px-2 py-1 rounded">No Connect</span>}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    )}
+
+                    {/* TRAVEL TAB */}
+                    {activeTab === 'travel' && (
+                    <div className="space-y-3">
+                        <h2 className="text-xl font-bold text-white mb-4">Select Destination</h2>
+                        {LOCATIONS.map(loc => {
+                            if (loc.id === location.id) return null;
+                            const details = calculateTravelDetails(loc);
+                            const opsCount = Object.values(operations).filter(o => o.locationId === loc.id).length;
+                            const moneyWaiting = getCollectableCashAtLocation(loc.id);
+                            const stockWaiting = getStockAtLocation(loc.id);
+                            return (
+                            <div key={loc.id} className="bg-gray-900 border border-gray-800 p-4 rounded-lg mb-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-3"><MapPin size={18} className={opsCount > 0 ? "text-green-500" : "text-gray-600"} /><div className="text-left"><div className="font-bold text-gray-200">{loc.name}</div><div className="text-xs text-gray-500 uppercase">{loc.type} • {details.dist} miles</div></div></div>
+                                    <div className="flex flex-col items-end">
+                                        {opsCount > 0 && stockWaiting <= 0 && <div className="text-[10px] bg-orange-900 text-orange-300 px-2 py-1 rounded mb-1 flex items-center gap-1"><AlertTriangle size={10}/> Restock Needed</div>}
+                                        {moneyWaiting > 0 && <div className="text-[10px] bg-green-900 text-green-300 px-2 py-1 rounded flex items-center gap-1"><DollarSign size={10}/> {formatMoney(moneyWaiting)}</div>}
+                                        {stockWaiting > 0 && <div className="text-[10px] bg-indigo-900 text-indigo-300 px-2 py-1 rounded flex items-center gap-1"><Package size={10}/> {stockWaiting}u</div>}
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <button onClick={() => travelTo(loc, 'train')} disabled={modal || eventQueue.length > 0} className="flex flex-col items-center justify-center p-2 bg-gray-800 hover:bg-indigo-900/40 border border-gray-700 rounded transition-colors disabled:opacity-30"><div className="flex items-center gap-1 text-xs text-indigo-400 font-bold mb-1"><Train size={14} /> Train</div><div className="text-white font-mono text-sm">{formatMoney(details.train.cost)}</div><div className="text-[10px] text-gray-500">{details.train.hours} hrs</div></button>
+                                    <button onClick={() => travelTo(loc, 'coach')} disabled={modal || eventQueue.length > 0} className="flex flex-col items-center justify-center p-2 bg-gray-800 hover:bg-indigo-900/40 border border-gray-700 rounded transition-colors disabled:opacity-30"><div className="flex items-center gap-1 text-xs text-orange-400 font-bold mb-1"><Bus size={14} /> Coach</div><div className="text-white font-mono text-sm">{formatMoney(details.coach.cost)}</div><div className="text-[10px] text-gray-500">{details.coach.hours} hrs</div></button>
+                                    <button onClick={() => travelTo(loc, 'free')} disabled={modal || eventQueue.length > 0} className="flex flex-col items-center justify-center p-2 bg-gray-800 hover:bg-red-900/20 border border-gray-700 hover:border-red-500/50 rounded transition-colors disabled:opacity-30 group"><div className="flex items-center gap-1 text-xs text-red-400 font-bold mb-1 group-hover:text-red-300"><TicketX size={14} /> Bump</div><div className="text-white font-mono text-sm">Free</div><div className="text-[10px] text-gray-500">{details.free.hours} hrs</div><div className="text-[9px] text-red-500 mt-1">5% Risk</div></button>
+                                </div>
+                            </div>
+                            )
+                        })}
+                    </div>
+                    )}
+
+                    {/* EMPIRE TAB */}
+                    {activeTab === 'empire' && (
+                    <div className="space-y-6">
+                        <h2 className="text-xl font-bold text-white">Operations</h2>
+                        <div className="bg-gray-900 p-3 rounded-lg border border-gray-800">
+                            <div className="flex justify-between items-center mb-3">
+                                <div className="text-center"><div className="text-gray-500 text-[10px] uppercase mb-1">Pros (£500)</div><div className="text-xl font-bold text-green-400">{crew.paid}</div></div>
+                                <div className="text-center"><div className="text-gray-500 text-[10px] uppercase mb-1">Street (Free)</div><div className="text-xl font-bold text-yellow-500">{crew.street}</div></div>
+                                <div className="text-center"><div className="text-gray-500 text-[10px] uppercase mb-1">Pending £</div><div className="text-xl font-bold text-white">{formatMoney(Object.values(operations).reduce((acc, op) => acc + op.cash, 0))}</div></div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button onClick={() => recruitCrew('paid')} disabled={modal || eventQueue.length > 0} className="bg-indigo-900/30 hover:bg-indigo-900/50 text-indigo-300 text-[10px] py-2 rounded border border-indigo-900/50 flex items-center justify-center gap-1 disabled:opacity-30"><UserPlus size={12}/> Recruit Pro (£500)</button>
+                                <button onClick={() => recruitCrew('street')} disabled={modal || eventQueue.length > 0} className="bg-yellow-900/30 hover:bg-yellow-900/50 text-yellow-500 text-[10px] py-2 rounded border border-yellow-900/50 flex items-center justify-center gap-1 disabled:opacity-30"><UserPlus size={12}/> Recruit Street (Risk +3%)</button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-bold text-white flex items-center gap-2"><MapPin size={16} /> {location.name} Ops</h3>
+                                <button onClick={openActionMenu} disabled={modal || eventQueue.length > 0} className="flex items-center gap-1 bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white px-2 py-1 rounded text-[10px] transition-colors disabled:opacity-30"><PlayCircle size={12} /> Actions</button>
+                            </div>
+                            {localOps.length === 0 && <div className="bg-gray-900/50 border border-dashed border-gray-800 p-4 rounded text-center text-gray-500 text-sm">No active lines in {location.name}.</div>}
+                            {localOps.map(([opId, op]) => (
+                                <div key={opId} className="bg-gradient-to-br from-gray-900 to-gray-800 p-4 rounded-xl border border-gray-700 shadow-lg relative overflow-hidden">
+                                    <div className="flex justify-between items-center border-b border-gray-700 pb-2 mb-3">
+                                        <div className="flex flex-col"><span className="text-indigo-400 font-bold text-sm">{OPERATION_TYPES[op.type].name}</span><span className={`text-[10px] uppercase font-bold ${op.crewType === 'street' ? 'text-red-400' : 'text-green-400'}`}>{op.crewType} Crew</span></div>
+                                        {op.hasGrow && <span className="text-xs flex items-center gap-1 text-green-400 bg-green-900/30 px-2 py-1 rounded"><Sprout size={12}/> Grow</span>}
+                                    </div>
+                                    <div className="space-y-2 mb-4">
+                                        <div className="grid grid-cols-5 gap-1 text-[9px] text-gray-500 uppercase font-bold text-center"><span className="text-left">Item</span><span>Bag</span><span>Unproc</span><span>Avail</span><span>Sold</span></div>
+                                        {productsConfig.map(prod => {
+                                            const processingDisplay = Math.floor(op.processing[prod.id] * 100) / 100;
+                                            const bagAmount = inventory[prod.id] || 0;
+                                            const transferKey = `${opId}_${prod.id}`;
+                                            const transferVal = transferAmounts[transferKey] || 0;
+                                            return (
+                                            <div key={prod.id} className="bg-gray-950/50 p-2 rounded border border-gray-800/50">
+                                                <div className="grid grid-cols-5 gap-1 items-center font-mono text-xs text-center mb-2">
+                                                    <span className="text-left text-gray-300 font-sans font-bold">{prod.name}</span>
+                                                    <span className="text-gray-400">{bagAmount}</span>
+                                                    <div className="flex flex-col items-center leading-none"><span className="text-yellow-500">{processingDisplay}</span><span className="text-[7px] text-gray-600">{prod.label}</span></div>
+                                                    <div className="flex flex-col items-center leading-none"><span className="text-green-500">{Math.floor(op.stock[prod.id])}</span><span className="text-[7px] text-gray-600">{prod.unit}</span></div>
+                                                    <div className="flex flex-col items-center leading-none"><span className="text-blue-400">{(op.sold?.[prod.id] || 0)}</span><span className="text-[7px] text-gray-600">{prod.unit}</span></div>
+                                                </div>
+                                                {bagAmount > 0 && (
+                                                    <div className="flex items-center gap-1 mt-1 justify-between bg-gray-900/80 p-1 rounded">
+                                                        <div className="flex items-center gap-1">
+                                                            <button onClick={() => updateTransferAmount(opId, prod.id, -1, bagAmount)} disabled={modal || eventQueue.length > 0} className="bg-gray-800 hover:bg-gray-700 text-white p-1 rounded"><Minus size={10}/></button>
+                                                            <span className="w-8 text-center text-[10px] text-white border border-gray-700 rounded">{transferVal}</span>
+                                                            <button onClick={() => updateTransferAmount(opId, prod.id, 1, bagAmount)} disabled={modal || eventQueue.length > 0} className="bg-gray-800 hover:bg-gray-700 text-white p-1 rounded"><Plus size={10}/></button>
+                                                            <button onClick={() => updateTransferAmount(opId, prod.id, 'max', bagAmount)} disabled={modal || eventQueue.length > 0} className="bg-gray-800 hover:bg-gray-700 text-indigo-300 p-1 rounded text-[9px]"><Maximize2 size={10}/></button>
+                                                        </div>
+                                                        <div className="flex gap-1">
+                                                            <button onClick={() => manageOp_Restock(opId, prod.id)} disabled={modal || transferVal <= 0 || eventQueue.length > 0} className={`bg-indigo-900 hover:bg-indigo-800 text-white px-2 py-1 rounded text-[9px] disabled:opacity-30`}>Drop</button>
+                                                            <button onClick={() => dropAllStock(opId, prod.id)} disabled={modal || eventQueue.length > 0} className={`bg-green-900 hover:bg-green-800 text-white px-1 py-1 rounded text-[9px] disabled:opacity-30 flex items-center justify-center`} title="Drop All"><ArrowDownCircle size={12}/></button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )})}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="bg-gray-950 p-2 rounded text-center border border-gray-800">
+                                            <div className="text-[10px] text-gray-500 mb-1">Safe Revenue</div>
+                                            <div className="text-lg font-mono text-green-400 mb-1">{formatMoney(op.cash)}</div>
+                                            <button onClick={() => manageOp_Collect(opId)} disabled={op.cash <= 0 || modal || eventQueue.length > 0} className="w-full bg-green-800 hover:bg-green-700 text-white text-[10px] py-1 rounded disabled:opacity-50">Collect (Instant)</button>
+                                        </div>
+                                        <div className="bg-gray-950 p-2 rounded text-center border border-gray-800 flex flex-col justify-center">
+                                            <div className="text-[10px] text-gray-500 mb-1">Heat Risk</div>
+                                            <div className={`text-lg font-mono font-bold ${op.risk > 50 ? 'text-red-500' : 'text-yellow-500'}`}>{Math.floor(op.risk)}%</div>
+                                        </div>
+                                    </div>
+                                    {OPERATION_TYPES[op.type].name === 'Luxury Rental' && !op.hasGrow && (
+                                        <button onClick={() => installGrow(opId)} disabled={modal || eventQueue.length > 0} className="w-full mt-3 border border-dashed border-green-800 text-green-600 p-2 rounded text-xs hover:bg-green-900/20 disabled:opacity-30">+ Install Grow Tent (£2,000)</button>
+                                    )}
+                                </div>
+                            ))}
+                            <div className="pt-4 border-t border-gray-800">
+                                <h4 className="text-sm text-gray-400 font-bold mb-2 uppercase">Establish New Line</h4>
+                                {location.type === 'city' ? (
+                                    <div className="text-red-400 text-xs bg-red-900/20 p-2 rounded text-center">Can't set up in the City. Go Country.</div>
+                                ) : (
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {Object.entries(OPERATION_TYPES).map(([key, type]) => (
+                                            <button key={key} onClick={() => setupOperation(key)} disabled={modal || eventQueue.length > 0} className="bg-gray-800 hover:bg-indigo-900/30 border border-gray-600 p-3 rounded text-left transition-all disabled:opacity-30 flex justify-between items-center">
+                                                <div><div className="font-bold text-indigo-300 text-xs">{type.name}</div><div className="text-[9px] text-gray-500">{type.description}</div></div>
+                                                <div className="text-right"><div className="text-xs font-mono text-white">{key === 'street' ? 'Free' : formatMoney(type.cost)}</div></div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    )}
+
+                    {/* FINANCES TAB */}
+                    {activeTab === 'finances' && (
+                        <div className="space-y-6">
+                            <h2 className="text-xl font-bold text-white">Finances & Laundering</h2>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-gray-900 p-4 rounded-lg border border-gray-800 text-center"><div className="text-gray-500 text-xs mb-1">Cash (Seizable)</div><div className="text-xl font-bold text-green-400 mb-1">{formatMoney(cash)}</div><div className="text-[10px] text-gray-600">Dirty Money</div></div>
+                                <div className="bg-gray-900 p-4 rounded-lg border border-gray-800 text-center"><div className="text-gray-500 text-xs mb-1">Bank (Safe)</div><div className="text-xl font-bold text-blue-400 mb-1">{formatMoney(bank)}</div><div className="text-[10px] text-gray-600">Earns 1% Daily</div></div>
+                            </div>
+                            <div className="bg-gray-900 p-4 rounded-lg border border-gray-800"><h3 className="font-bold text-white text-xs uppercase mb-3">Vitals</h3><div className="grid grid-cols-3 gap-2 text-center text-xs"><div className="bg-gray-800 p-2 rounded"><div className="text-gray-500">Stress</div><div className={`${stress > 80 ? 'text-red-500' : 'text-white'} font-bold`}>{Math.floor(stress)}%</div></div><div className="bg-gray-800 p-2 rounded"><div className="text-gray-500">Health</div><div className={`${health < 30 ? 'text-red-500' : 'text-green-500'} font-bold`}>{Math.floor(health)}%</div></div><div className="bg-gray-800 p-2 rounded"><div className="text-gray-500">Strength</div><div className="text-blue-400 font-bold">{Math.floor(strength)}</div></div></div></div>
+                            <div className="bg-gray-900 p-4 rounded-lg border border-gray-800"><div className="flex justify-between items-center mb-4"><h3 className="font-bold text-white flex items-center gap-2"><Bitcoin size={16} className="text-orange-500"/> Crypto Assets</h3><div className="text-right"><div className="text-xs text-gray-500">BTC Price</div><div className="text-orange-400 font-mono">{formatMoney(btcPrice)}</div></div></div><div className="text-center mb-4"><div className="text-3xl font-black text-white">{crypto.toFixed(4)} <span className="text-sm text-gray-500">BTC</span></div><div className="text-xs text-gray-500">Value: {formatMoney(crypto * btcPrice)}</div></div><div className="grid grid-cols-2 gap-2"><button onClick={() => buyCrypto(1000)} disabled={cash < 1000 || modal || eventQueue.length > 0} className="bg-green-900/30 hover:bg-green-900/50 text-green-400 text-xs py-2 rounded border border-green-900/50">Buy £1k BTC</button><button onClick={() => sellCrypto(crypto)} disabled={crypto <= 0 || modal || eventQueue.length > 0} className="bg-red-900/30 hover:bg-red-900/50 text-red-400 text-xs py-2 rounded border border-red-900/50">Sell All BTC</button></div></div>
+                            <div className="bg-gray-900 p-4 rounded-lg border border-gray-800"><h3 className="font-bold text-white flex items-center gap-2 mb-3"><RefreshCw size={16} className="text-purple-500"/> Money Laundering</h3>{location?.contact ? (<div className="bg-gray-800/50 p-3 rounded mb-4"><div className="flex justify-between items-center mb-1"><span className="text-sm font-bold text-gray-300">{location.contact.name}</span><span className="text-xs bg-purple-900 text-purple-300 px-2 py-1 rounded">Fee: {(location.contact.fee * 100).toFixed(0)}%</span></div><div className="text-xs text-gray-500 mb-3">{location.contact.desc} • Takes {location.contact.time} hours</div><button onClick={() => launderMoney(cash)} disabled={cash <= 0 || modal || eventQueue.length > 0} className="w-full bg-purple-700 hover:bg-purple-600 text-white text-xs py-2 rounded disabled:opacity-50">Launder All Cash</button></div>) : (<div className="text-gray-500 text-xs p-4 text-center">Laundering unavailable here.</div>)}{laundering.length > 0 && (<div><div className="text-[10px] uppercase text-gray-500 font-bold mb-2">Pending Transactions</div><div className="space-y-1">{laundering.map(job => (<div key={job.id} className="flex justify-between text-xs bg-gray-950 p-2 rounded"><span className="text-gray-400">{job.location}</span><span className="text-white">{formatMoney(job.payout)}</span><span className="text-yellow-500">{job.hoursLeft}h left</span></div>))}</div></div>)}</div>
+                            <div className="bg-red-900/10 p-4 rounded-lg border border-red-900/30 flex justify-between items-center"><div><div className="text-gray-500 text-xs">Total Debt</div><div className="text-xl font-black text-red-500">{formatMoney(debt)}</div>{limit && <div className="text-[10px] text-red-400">{limit - day + 1} Days Left</div>}</div><button onClick={payDebt} disabled={debt === 0 || cash === 0 || modal || eventQueue.length > 0} className="bg-red-900/50 hover:bg-red-900 text-red-300 text-xs px-4 py-2 rounded font-bold disabled:opacity-50">Pay Debt</button></div>
+                            <div className="mt-8 bg-gray-900/50 p-4 rounded-lg"><h3 className="text-sm font-bold text-gray-400 mb-2">Comms Log</h3><div className="text-xs text-gray-500 space-y-1 font-mono">{logs.map((log, i) => <div key={i}>&gt; {log}</div>)}</div></div>
+                            <button onClick={confirmQuit} disabled={modal || eventQueue.length > 0} className="w-full py-4 mt-4 text-sm text-red-500 font-bold hover:bg-red-900/10 border border-transparent hover:border-red-900/30 rounded flex items-center justify-center gap-2 transition-all disabled:opacity-50"><LogOut size={16} /> Quit to Menu</button>
+                        </div>
+                    )}
+                </div>
+
+                <div className="bg-gray-900 border-t border-gray-800 p-2 z-10 grid grid-cols-4 gap-2">
+                    <button onClick={() => setActiveTab('market')} disabled={modal || eventQueue.length > 0} className={`flex flex-col items-center justify-center p-2 rounded disabled:opacity-30 ${activeTab === 'market' ? 'text-indigo-400 bg-gray-800' : 'text-gray-500'}`}><DollarSign size={20} /><span className="text-[10px] mt-1 font-bold">Market</span></button>
+                    <button onClick={() => setActiveTab('travel')} disabled={modal || eventQueue.length > 0} className={`flex flex-col items-center justify-center p-2 rounded disabled:opacity-30 ${activeTab === 'travel' ? 'text-indigo-400 bg-gray-800' : 'text-gray-500'}`}><Navigation size={20} /><span className="text-[10px] mt-1 font-bold">Travel</span></button>
+                    {location.id !== 'lon' && (
+                        <button onClick={() => setActiveTab('empire')} disabled={modal || eventQueue.length > 0} className={`flex flex-col items-center justify-center p-2 rounded disabled:opacity-30 ${activeTab === 'empire' ? 'text-indigo-400 bg-gray-800' : 'text-gray-500'}`}><Briefcase size={20} /><span className="text-[10px] mt-1 font-bold">Ops</span></button>
+                    )}
+                    {showAdmin && (
+                        <button onClick={() => setActiveTab('admin')} className={`flex flex-col items-center justify-center p-2 rounded ${activeTab === 'admin' ? 'text-red-400 bg-gray-800' : 'text-gray-500'}`}><Lock size={20} /><span className="text-[10px] mt-1 font-bold">Admin</span></button>
+                    )}
+                    <button onClick={() => setActiveTab('finances')} disabled={modal || eventQueue.length > 0} className={`flex flex-col items-center justify-center p-2 rounded disabled:opacity-30 ${activeTab === 'finances' ? 'text-indigo-400 bg-gray-800' : 'text-gray-500'}`}><Landmark size={20} /><span className="text-[10px] mt-1 font-bold">Finances</span></button>
+                </div>
+            </div>
+        )}
+    }
