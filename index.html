@@ -8,19 +8,18 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- FontAwesome (Replacing Lucide for standalone compatibility) -->
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
-    <!-- Babel for JSX -->
+    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
         body { background-color: #0f172a; color: white; touch-action: manipulation; }
-        /* Disable select for app-like feel */
         .no-select { -webkit-user-select: none; user-select: none; }
     </style>
 </head>
@@ -30,8 +29,6 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- ICON MAPPING (Lucide -> FontAwesome) ---
-        // This allows the React code to run without a build step by mapping components to <i> tags
         const Icon = ({ name, size = 16, className = "" }) => {
             const style = { fontSize: size };
             return <i className={`fa-solid ${name} ${className}`} style={style}></i>;
@@ -81,8 +78,6 @@
         const ArrowDownCircle = (p) => <Icon name="fa-circle-arrow-down" {...p} />;
         const Save = (p) => <Icon name="fa-floppy-disk" {...p} />;
 
-        // --- GAME DATA ---
-        
         const LOCATIONS = [
             { id: 'lon', name: 'London (The Ends)', type: 'city', volatility: 0.1, distance: 0, contact: { name: 'Prestige Car Wash', fee: 0.25, time: 2, desc: "Fast & Expensive" } },
             { id: 'col', name: 'Colchester', type: 'country', volatility: 0.2, distance: 60, contact: { name: 'Local Pub Landlord', fee: 0.15, time: 6, desc: "Standard Service" } },
@@ -156,7 +151,6 @@
         };
         const formatTime = (hour) => `${hour.toString().padStart(2, '0')}:00`;
 
-        // --- MAIN COMPONENT ---
         function CountyLinesGame() {
             const [gameKey, setGameKey] = useState(0); 
             const [gameState, setGameState] = useState('menu'); 
@@ -1286,3 +1280,11 @@
             </div>
         )}
     }
+    
+    // --- APP RENDER ---
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<CountyLinesGame />);
+
+    </script>
+</body>
+</html>
