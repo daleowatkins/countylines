@@ -189,6 +189,10 @@
             const [modal, setModal] = useState(null); 
             const [logs, setLogs] = useState([]);
 
+            // Computed values defined early to prevent reference errors
+            const localOps = Object.entries(operations).filter(([_, op]) => op.locationId === location.id);
+            const limit = DIFFICULTY_SETTINGS[difficulty].limit;
+
             // --- Initialization ---
             useEffect(() => {
                 const save = localStorage.getItem('countyLinesSave_v1');
@@ -245,10 +249,6 @@
             };
 
             // --- Helpers ---
-            const getLocalOperations = () => {
-                return Object.entries(operations).filter(([_, op]) => op.locationId === location.id);
-            };
-
             const getCollectableCashAtLocation = (locId) => {
                 const ops = Object.values(operations).filter(op => op.locationId === locId);
                 return ops.reduce((acc, op) => acc + (op.cash || 0), 0);
@@ -540,6 +540,7 @@
                 let raidMessages = [];
                 let currentDebt = debt;
                 
+                // DETERMINE RAIDS
                 const newEvents = [];
                 
                 Object.keys(operations).forEach(opId => {
@@ -894,6 +895,8 @@
                     type: "actions"
                 });
             };
+
+            // --- Financial Actions ---
 
             const launderMoney = (amount) => {
                 if (modal || eventQueue.length > 0) return;
