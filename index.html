@@ -87,6 +87,7 @@
         const Siren = (p) => <Icon name="fa-bullhorn" {...p} />;
         const Ban = (p) => <Icon name="fa-ban" {...p} />;
         const Trash = (p) => <Icon name="fa-trash" {...p} />;
+        const Gift = (p) => <Icon name="fa-gift" {...p} />;
 
         const LOCATIONS = [
             { id: 'lon', name: 'London (The Ends)', type: 'city', volatility: 0.1, distance: 0, contact: { name: 'Prestige Car Wash', fee: 0.25, time: 2, desc: "Fast & Expensive" } },
@@ -107,6 +108,36 @@
             { id: 'p8', name: 'Pills', label: 'Pack', unit: 'Pill', baseBuy: 5000, minSell: 10, maxSell: 15, conversion: 1000 },
             { id: 'p4', name: 'Heroin', label: 'Kilo', unit: 'bag', baseBuy: 35000, minSell: 45, maxSell: 55, conversion: 2000 },
             { id: 'p2', name: 'Coke', label: 'Kilo', unit: 'pkt', baseBuy: 45000, minSell: 45, maxSell: 55, conversion: 2500, demand: 1.75 }, 
+        ];
+
+        const LONDON_EVENTS = [
+            {
+                id: 'grow_raid',
+                title: "TIP OFF: HUGE GROW",
+                message: "You got a tip off about a huge grow nearby. A rival gang left it unguarded for the night.\n\nIt's free real estate.",
+                options: [
+                    { label: "Raid It", style: "green", action: 'raid_grow', desc: "Get 8lbs Weed (Free). 30% chance +250 Heat." },
+                    { label: "Leave It", style: "gray", action: 'ignore', desc: "Too bait. No effect." }
+                ]
+            },
+            {
+                id: 'smackhead_tip',
+                title: "SMACKHEAD TIP",
+                message: "A local junkie is offering to let you into a rival's trap house for £200. He says there's a kilo of heavy and cash in the safe.",
+                options: [
+                    { label: "Pay £200", style: "green", action: 'raid_trap', desc: "Get 4kg Heroin + £2k-£5k. 5% RISK OF DEATH." },
+                    { label: "Tell him do one", style: "gray", action: 'ignore', desc: "It's probably a setup." }
+                ]
+            },
+            {
+                id: 'plug_deal',
+                title: "THE PLUG'S PLUG",
+                message: "Your main connect is feeling generous. He's offering a bulk deal on Coke if you take it NOW.",
+                options: [
+                    { label: "Buy 5kg for £500", style: "green", action: 'buy_cheap_coke', desc: "Insane price. 10% Chance it's cut with brick dust (Lose Cash)." },
+                    { label: "Pass", style: "gray", action: 'ignore', desc: "Save cash." }
+                ]
+            }
         ];
 
         const VEHICLES = {
@@ -247,7 +278,7 @@
 
             // --- Initialization ---
             useEffect(() => {
-                const save = localStorage.getItem('countyLinesSave_v6');
+                const save = localStorage.getItem('countyLinesSave_v7');
                 if (save) setHasSave(true);
                 generateNewPrices();
             }, [gameKey]);
@@ -261,12 +292,12 @@
                     strength, intel, inventory, location, prices, btcPrice, crew, 
                     operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState
                 };
-                localStorage.setItem('countyLinesSave_v6', JSON.stringify(saveState));
+                localStorage.setItem('countyLinesSave_v7', JSON.stringify(saveState));
                 }
             }, [day, hour, totalHours, cash, bank, crypto, debt, stress, health, investigation, investigationPausedUntil, vehicle, actionCooldowns, nextPayDay, strength, intel, inventory, location, prices, btcPrice, crew, operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState]);
 
             const loadGame = () => {
-                const saved = localStorage.getItem('countyLinesSave_v6');
+                const saved = localStorage.getItem('countyLinesSave_v7');
                 if (saved) {
                     try {
                         const data = JSON.parse(saved);
@@ -417,7 +448,7 @@
             // --- Game Lifecycle ---
 
             const startGame = (modeKey) => {
-                localStorage.removeItem('countyLinesSave_v6');
+                localStorage.removeItem('countyLinesSave_v7');
                 const settings = DIFFICULTY_SETTINGS[modeKey];
                 setDifficulty(modeKey);
                 setCash(settings.cash);
@@ -524,7 +555,7 @@
                     
                     const limit = DIFFICULTY_SETTINGS[difficulty].limit;
                     if (limit && newDay > limit && debt > 0) {
-                        localStorage.removeItem('countyLinesSave_v6');
+                        localStorage.removeItem('countyLinesSave_v7');
                         setModal({
                             title: "GAME OVER",
                             message: "Time's up fam.\n\nMiz pulled up on you. You didn't have the paper.\n\n*Bang*",
@@ -545,7 +576,7 @@
                         message: "The net closed in. Armed police raided your spot.\n\nYou are serving 12 years for conspiracy to supply.\n\nGAME OVER.",
                         type: 'gameover'
                     });
-                    localStorage.removeItem('countyLinesSave_v6');
+                    localStorage.removeItem('countyLinesSave_v7');
                 }
             };
 
@@ -657,7 +688,7 @@
                                 message: `You missed the ${formatMoney(totalWeekly)} payroll.\n\nYour crew turned on you. You were found in a ditch.\n\nGAME OVER.`,
                                 type: 'gameover'
                             });
-                            localStorage.removeItem('countyLinesSave_v6');
+                            localStorage.removeItem('countyLinesSave_v7');
                             return; // Stop processing
                         } else {
                             setCash(c => c - totalWeekly);
@@ -730,9 +761,65 @@
                 setStress(s => Math.max(0, s - (10 * daysPassed)));
             };
 
+            const resolveLondonEvent = (choice, eventData) => {
+                const action = eventData.options.find(o => o.action === choice);
+                if (!action) {
+                    setEventQueue(prev => prev.slice(1));
+                    return;
+                }
+
+                if (choice === 'ignore') {
+                    addLog("Ignored opportunity.");
+                } else if (choice === 'raid_grow') {
+                    setInventory(inv => ({ ...inv, 'p1': (inv['p1'] || 0) + 8 })); // 8lbs Weed
+                    addLog("Raided the grow. +8lbs Weed secured.");
+                    if (Math.random() < 0.3) {
+                        setInvestigation(inv => Math.min(1000, inv + 250));
+                        addLog("WARNING: Locals saw you. Heat +250.");
+                    }
+                } else if (choice === 'raid_trap') {
+                    if (cash < 200) {
+                        addLog("Couldn't afford the tip. Missed out.");
+                    } else {
+                        if (Math.random() < 0.05) {
+                            setModal({
+                                title: "AMBUSH",
+                                message: "It was a setup. You got rushed by 5 guys with shanks.\n\nGAME OVER.",
+                                type: 'gameover'
+                            });
+                            localStorage.removeItem('countyLinesSave_v7');
+                            return;
+                        }
+                        setCash(c => c - 200 + Math.floor(2000 + Math.random() * 3000));
+                        setInventory(inv => ({ ...inv, 'p4': (inv['p4'] || 0) + 4 })); // 4kg Heroin
+                        addLog("Hit the trap. Got 4kg Heroin and cleared the safe.");
+                    }
+                } else if (choice === 'buy_cheap_coke') {
+                    if (cash < 500) {
+                        addLog("Couldn't afford the deal.");
+                    } else {
+                        setCash(c => c - 500);
+                        if (Math.random() < 0.1) {
+                            addLog("SCAMMED. The brick was just crushed drywall.");
+                        } else {
+                            setInventory(inv => ({ ...inv, 'p2': (inv['p2'] || 0) + 5 })); // 5kg Coke
+                            addLog("Deal done. +5kg Coke secured.");
+                        }
+                    }
+                }
+
+                setEventQueue(prev => prev.slice(1));
+            };
+
             const resolveRaid = (choice) => {
                 const currentEvent = eventQueue[0];
                 if (!currentEvent) return;
+
+                // Handle London Opportunity
+                if (currentEvent.type === 'london_opportunity') {
+                    resolveLondonEvent(choice, currentEvent.data);
+                    return;
+                }
 
                 // Handle Pulled Over Events
                 if (currentEvent.type === 'pulled_over') {
@@ -945,6 +1032,13 @@
                      setEventQueue(prev => [...prev, { type: 'pulled_over' }]);
                      // Don't execute travel yet
                      return;
+                }
+
+                // NEW: Random London Opportunity (5% chance)
+                if (targetLocation.id === 'lon' && Math.random() < 0.05) {
+                    const randomEvent = LONDON_EVENTS[Math.floor(Math.random() * LONDON_EVENTS.length)];
+                    setEventQueue(prev => [...prev, { type: 'london_opportunity', data: randomEvent }]);
+                    // Note: Travel cost/time is applied below, then event shows.
                 }
 
                 if (mode === 'free') {
@@ -1338,9 +1432,36 @@
                     </div>
                 )}
                 
-                {/* RAID / PULLED OVER EVENT OVERLAY */}
+                {/* RAID / PULLED OVER / EVENT OVERLAY */}
                 {eventQueue.length > 0 && !modal && (() => {
                     const evt = eventQueue[0];
+                    
+                    // HANDLE LONDON OPPORTUNITY
+                    if (evt.type === 'london_opportunity') {
+                        const data = evt.data;
+                        return (
+                            <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
+                                <div className="bg-indigo-900/40 border border-indigo-500 p-6 rounded-lg w-full max-w-sm shadow-2xl relative backdrop-blur-sm">
+                                    <div className="flex justify-center mb-4"><Gift size={48} className="text-indigo-400 animate-pulse"/></div>
+                                    <h3 className="text-xl font-black text-white text-center mb-2 uppercase">{data.title}</h3>
+                                    <p className="text-gray-300 text-center mb-6 text-sm whitespace-pre-line">{data.message}</p>
+                                    <div className="space-y-3">
+                                        {data.options.map(opt => (
+                                            <button 
+                                                key={opt.label} 
+                                                onClick={() => resolveLondonEvent(opt.action, data)} 
+                                                className={`w-full border p-3 rounded text-left transition-colors ${opt.style === 'green' ? 'bg-gray-800 hover:bg-emerald-900/30 border-emerald-600 text-white' : 'bg-gray-800 hover:bg-gray-700 border-gray-600 text-gray-400'}`}
+                                            >
+                                                <div className={`font-bold text-sm ${opt.style === 'green' ? 'text-emerald-400' : 'text-gray-300'}`}>{opt.label}</div>
+                                                <div className="text-xs opacity-70">{opt.desc}</div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    }
+
                     if (evt.type === 'pulled_over') {
                          return (
                             <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4">
