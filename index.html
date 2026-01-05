@@ -85,6 +85,8 @@
         const Save = (p) => <Icon name="fa-floppy-disk" {...p} />;
         const Fire = (p) => <Icon name="fa-fire" {...p} />;
         const Siren = (p) => <Icon name="fa-bullhorn" {...p} />;
+        const Ban = (p) => <Icon name="fa-ban" {...p} />;
+        const Trash = (p) => <Icon name="fa-trash" {...p} />;
 
         const LOCATIONS = [
             { id: 'lon', name: 'London (The Ends)', type: 'city', volatility: 0.1, distance: 0, contact: { name: 'Prestige Car Wash', fee: 0.25, time: 2, desc: "Fast & Expensive" } },
@@ -120,9 +122,15 @@
             rental: { name: 'Luxury Rental', cost: 5000, risk: 0.02, speed: 10, processingSpeed: 8, description: "Low risk. Industrial efficiency." }
         };
 
+        const CREW_CONFIG = {
+            roadman: { label: 'Exp. Roadman', recruitCost: 500, dailyWage: 300, riskMod: 0, desc: "Pro. Expensive. Reliable." },
+            coerced: { label: 'Coerced Youth', recruitCost: 0, dailyWage: 100, riskMod: 3, desc: "Standard risk." },
+            blackmailed: { label: 'Blackmailed Youth', recruitCost: 0, dailyWage: 15, riskMod: 5, desc: "Cheap. High Risk (+5%)." }
+        };
+
         const HEAT_ACTIONS = [
             { id: 'sim', name: 'Swap Sim Card', cost: 20, pauseHours: 8, chance: 0.8, cooldownDays: 7, desc: "Pause heat 8h. 80% Success.", icon: Mobile },
-            { id: 'hotel_hide', name: 'Hide in Hotel', cost: 150, pauseHours: 24, chance: 1.0, cooldownDays: 0, desc: "Pause heat 24h. 100% Success. Takes 24h.", icon: Bed },
+            { id: 'hotel_hide', name: 'Hide in Hotel', cost: 150, pauseHours: 24, chance: 1.0, cooldownDays: 7, desc: "Pause heat 24h. 100% Success. Takes 24h.", icon: Bed },
             { id: 'snitch', name: 'Hit the Snitch', cost: 25000, pauseHours: 72, chance: 0.8, failPenalty: 100, cooldownDays: 14, desc: "Pause 3 Days. 20% fail (+100 Heat).", icon: Skull }
         ];
 
@@ -194,6 +202,7 @@
             const [investigationPausedUntil, setInvestigationPausedUntil] = useState(0); // Total hours timestamp
             const [vehicle, setVehicle] = useState(null); // { id: 'mondeo', ... }
             const [actionCooldowns, setActionCooldowns] = useState({}); // { 'sim': dayNumber }
+            const [nextPayDay, setNextPayDay] = useState(7); // Day wage is due
 
             const [strength, setStrength] = useState(10);
             const [intel, setIntel] = useState(10);
@@ -202,7 +211,7 @@
             const [location, setLocation] = useState(LOCATIONS[0]);
             const [prices, setPrices] = useState({});
             const [btcPrice, setBtcPrice] = useState(25000); 
-            const [crew, setCrew] = useState({ paid: 0, street: 0 }); 
+            const [crew, setCrew] = useState({ roadman: 0, coerced: 0, blackmailed: 0 }); 
             const [operations, setOperations] = useState({}); 
             const [laundering, setLaundering] = useState([]);
             const [bannedLocations, setBannedLocations] = useState({}); 
@@ -222,9 +231,23 @@
             const limit = DIFFICULTY_SETTINGS[difficulty].limit;
             const isInvestigationPaused = totalHours < investigationPausedUntil;
 
+            const calculateDailyWages = () => {
+                let total = 0;
+                total += crew.roadman * CREW_CONFIG.roadman.dailyWage;
+                total += crew.coerced * CREW_CONFIG.coerced.dailyWage;
+                total += crew.blackmailed * CREW_CONFIG.blackmailed.dailyWage;
+                Object.values(operations).forEach(op => {
+                    const type = op.crewType || 'coerced'; 
+                    total += (CREW_CONFIG[type]?.dailyWage || 0);
+                });
+                return total;
+            };
+
+            const currentDailyExpenses = calculateDailyWages();
+
             // --- Initialization ---
             useEffect(() => {
-                const save = localStorage.getItem('countyLinesSave_v3');
+                const save = localStorage.getItem('countyLinesSave_v6');
                 if (save) setHasSave(true);
                 generateNewPrices();
             }, [gameKey]);
@@ -234,16 +257,16 @@
                 if (gameState === 'playing') {
                 const saveState = {
                     day, hour, totalHours, cash, bank, crypto, debt, stress, health, 
-                    investigation, investigationPausedUntil, vehicle, actionCooldowns,
+                    investigation, investigationPausedUntil, vehicle, actionCooldowns, nextPayDay,
                     strength, intel, inventory, location, prices, btcPrice, crew, 
                     operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState
                 };
-                localStorage.setItem('countyLinesSave_v3', JSON.stringify(saveState));
+                localStorage.setItem('countyLinesSave_v6', JSON.stringify(saveState));
                 }
-            }, [day, hour, totalHours, cash, bank, crypto, debt, stress, health, investigation, investigationPausedUntil, vehicle, actionCooldowns, strength, intel, inventory, location, prices, btcPrice, crew, operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState]);
+            }, [day, hour, totalHours, cash, bank, crypto, debt, stress, health, investigation, investigationPausedUntil, vehicle, actionCooldowns, nextPayDay, strength, intel, inventory, location, prices, btcPrice, crew, operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState]);
 
             const loadGame = () => {
-                const saved = localStorage.getItem('countyLinesSave_v3');
+                const saved = localStorage.getItem('countyLinesSave_v6');
                 if (saved) {
                     try {
                         const data = JSON.parse(saved);
@@ -261,6 +284,7 @@
                         setInvestigationPausedUntil(data.investigationPausedUntil || 0);
                         setVehicle(data.vehicle || null);
                         setActionCooldowns(data.actionCooldowns || {});
+                        setNextPayDay(data.nextPayDay || 7);
 
                         setStrength(data.strength);
                         setIntel(data.intel);
@@ -268,7 +292,7 @@
                         setLocation(data.location);
                         setPrices(data.prices);
                         setBtcPrice(data.btcPrice);
-                        setCrew(data.crew);
+                        setCrew(data.crew || { roadman: 0, coerced: 0, blackmailed: 0 });
                         setOperations(data.operations);
                         setLaundering(data.laundering);
                         setBannedLocations(data.bannedLocations);
@@ -393,7 +417,7 @@
             // --- Game Lifecycle ---
 
             const startGame = (modeKey) => {
-                localStorage.removeItem('countyLinesSave_v3');
+                localStorage.removeItem('countyLinesSave_v6');
                 const settings = DIFFICULTY_SETTINGS[modeKey];
                 setDifficulty(modeKey);
                 setCash(settings.cash);
@@ -410,6 +434,7 @@
                 setInvestigationPausedUntil(0);
                 setVehicle(null);
                 setActionCooldowns({});
+                setNextPayDay(7);
 
                 setStrength(10);
                 setIntel(10);
@@ -419,7 +444,7 @@
                 setInventory(initialInv);
                 
                 setLocation(LOCATIONS[0]);
-                setCrew({ paid: 0, street: 0 });
+                setCrew({ roadman: 0, coerced: 0, blackmailed: 0 });
                 setOperations({});
                 setLaundering([]);
                 setBannedLocations({});
@@ -499,7 +524,7 @@
                     
                     const limit = DIFFICULTY_SETTINGS[difficulty].limit;
                     if (limit && newDay > limit && debt > 0) {
-                        localStorage.removeItem('countyLinesSave_v3');
+                        localStorage.removeItem('countyLinesSave_v6');
                         setModal({
                             title: "GAME OVER",
                             message: "Time's up fam.\n\nMiz pulled up on you. You didn't have the paper.\n\n*Bang*",
@@ -508,7 +533,7 @@
                         return;
                     }
 
-                    processDailyUpdates(daysPassed);
+                    processDailyUpdates(daysPassed, newDay);
                     addLog(limit ? `🌅 Day ${newDay}. ${limit - newDay + 1} days left.` : `🌅 Day ${newDay}.`);
                     generateNewPrices();
                 }
@@ -520,7 +545,7 @@
                         message: "The net closed in. Armed police raided your spot.\n\nYou are serving 12 years for conspiracy to supply.\n\nGAME OVER.",
                         type: 'gameover'
                     });
-                    localStorage.removeItem('countyLinesSave_v3');
+                    localStorage.removeItem('countyLinesSave_v6');
                 }
             };
 
@@ -601,7 +626,7 @@
                             }
                         });
 
-                        const riskFloor = op.crewType === 'street' ? 3 : 0;
+                        const riskFloor = CREW_CONFIG[op.crewType]?.riskMod || 0;
                         if (incomeGenerated) {
                             op.risk += (opType.risk * hoursPassed);
                             // Operations generate background investigation heat
@@ -619,7 +644,35 @@
                 });
             };
             
-            const processDailyUpdates = (daysPassed) => {
+            const processDailyUpdates = (daysPassed, newDay) => {
+                // WAGES LOGIC - WEEKLY
+                if (newDay >= nextPayDay) {
+                    const totalDaily = calculateDailyWages();
+                    const totalWeekly = totalDaily * 7;
+                    
+                    if (totalWeekly > 0) {
+                        if (cash < totalWeekly) {
+                            setModal({
+                                title: "BETRAYED",
+                                message: `You missed the ${formatMoney(totalWeekly)} payroll.\n\nYour crew turned on you. You were found in a ditch.\n\nGAME OVER.`,
+                                type: 'gameover'
+                            });
+                            localStorage.removeItem('countyLinesSave_v6');
+                            return; // Stop processing
+                        } else {
+                            setCash(c => c - totalWeekly);
+                            setModal({
+                                title: "PAYDAY",
+                                message: `Paid crew wages: ${formatMoney(totalWeekly)}.\n\nLoyalty maintained.`,
+                                type: 'intro'
+                            });
+                            setNextPayDay(prev => prev + 7);
+                        }
+                    } else {
+                        setNextPayDay(prev => prev + 7); // Still advance even if 0 wages
+                    }
+                }
+
                 let raidMessages = [];
                 let currentDebt = debt;
                 
@@ -814,7 +867,7 @@
                     return;
                 }
                 
-                // Check Cooldown
+                // Check Cooldown - FIX
                 const lastUsed = actionCooldowns[action.id] || 0;
                 if (day < lastUsed + action.cooldownDays) {
                     setModal({ title: "Cooldown", message: `Can't do this yet. Wait ${lastUsed + action.cooldownDays - day} more days.`, type: 'error' });
@@ -840,7 +893,7 @@
                     addLog(`SUCCESS: ${action.name}. Investigation stalled for ${pauseTime}h.`);
                 }
                 
-                // Set Cooldown
+                // Set Cooldown - FIX: Update state
                 if (action.cooldownDays > 0) {
                     setActionCooldowns(prev => ({ ...prev, [action.id]: day }));
                 }
@@ -926,7 +979,7 @@
                 if (!priceData) return;
                 const maxBuy = Math.floor(cash / priceData.buy);
                 if (maxBuy <= 0) return;
-                let timeCost = Math.floor(Math.random() * 2) + 1;
+                let timeCost = 0; // Updated to 0 hours
                 const amount = 1; 
                 setCash(c => c - (priceData.buy * amount));
                 setInventory(inv => ({ ...inv, [prodId]: (inv[prodId] || 0) + amount }));
@@ -940,18 +993,19 @@
                     setModal({ title: "Area Too Hot", message: `Town banned until Day ${banDay}.`, type: 'error' });
                     return;
                 }
-                if (type === 'paid') {
-                    if (cash < 500) {
-                        setModal({ title: "Funds Needed", message: "Pros cost £500.", type: 'error' });
-                        return;
-                    }
-                    setCash(c => c - 500);
-                    setCrew(prev => ({ ...prev, paid: prev.paid + 1 }));
-                    addLog("Recruited a Pro Runner.");
-                } else {
-                    setCrew(prev => ({ ...prev, street: prev.street + 1 }));
-                    addLog("Recruited a Street Kid.");
+                
+                const config = CREW_CONFIG[type];
+                if (!config) return;
+
+                if (cash < config.recruitCost) {
+                    setModal({ title: "Funds Needed", message: `Need ${formatMoney(config.recruitCost)}.`, type: 'error' });
+                    return;
                 }
+                
+                setCash(c => c - config.recruitCost);
+                setCrew(prev => ({ ...prev, [type]: (prev[type] || 0) + 1 }));
+                addLog(`Recruited: ${config.label}.`);
+                
                 passTime(1);
             };
 
@@ -960,8 +1014,10 @@
                 if (location.type === 'city') return;
                 
                 let selectedCrewType = null;
-                if (crew.paid > 0) selectedCrewType = 'paid';
-                else if (crew.street > 0) selectedCrewType = 'street';
+                // Priority: Roadman > Coerced > Blackmailed
+                if (crew.roadman > 0) selectedCrewType = 'roadman';
+                else if (crew.coerced > 0) selectedCrewType = 'coerced';
+                else if (crew.blackmailed > 0) selectedCrewType = 'blackmailed';
 
                 if (!selectedCrewType) {
                     setModal({ title: "No Staff", message: "Recruit a runner first.", type: 'error' });
@@ -980,7 +1036,7 @@
                 // Establishing ops adds investigation
                 setInvestigation(i => Math.min(1000, i + 50));
 
-                const initialRisk = selectedCrewType === 'street' ? 3 : 0; 
+                const initialRisk = CREW_CONFIG[selectedCrewType].riskMod; 
                 const newOpId = `op_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
                 const initialStock = {};
                 const initialProcessing = {};
@@ -1006,7 +1062,7 @@
                     }
                 }));
                 passTime(4);
-                addLog(`Established ${opData.name}.`);
+                addLog(`Established ${opData.name} with ${CREW_CONFIG[selectedCrewType].label}.`);
             };
 
             const manageOp_Restock = (opId, prodId) => {
@@ -1064,6 +1120,63 @@
                     [opId]: { ...prev[opId], cash: 0, sold: resetSold }
                 }));
                 addLog(`Collected ${formatMoney(amount)}.`);
+            };
+
+            const shutdownOp = (opId, mode) => {
+                const op = operations[opId];
+                
+                if (mode === 'ask') {
+                    setModal({
+                        title: "Shut Down Trap House?",
+                        message: `Recover all stock & cash (${formatMoney(op.cash)}).\n\nChoose how to proceed:`,
+                        type: 'shutdown_confirm',
+                        opId: opId
+                    });
+                    return;
+                }
+
+                // Calculate Recovery
+                const recoveredCash = op.cash || 0;
+                
+                // Update Inventory with Recovered Stock
+                setInventory(prev => {
+                    const next = { ...prev };
+                    productsConfig.forEach(p => {
+                        const rawFromProcessing = op.processing[p.id] || 0;
+                        const rawFromStock = (op.stock[p.id] || 0) / p.conversion;
+                        const totalRaw = rawFromProcessing + rawFromStock;
+                        if (totalRaw > 0) {
+                            next[p.id] = (next[p.id] || 0) + totalRaw;
+                        }
+                    });
+                    return next;
+                });
+
+                if (mode === 'abandon') {
+                    setInvestigation(inv => Math.min(1000, inv + 100));
+                    setCash(c => c + recoveredCash);
+                    addLog(`Shut down ${OPERATION_TYPES[op.type].name}. Recovered ${formatMoney(recoveredCash)} & Stock. Heat +100.`);
+                } else if (mode === 'cleanup') {
+                    // Check if they can afford cleanup (considering recovered cash)
+                    if ((cash + recoveredCash) < 1000) {
+                        setModal({ title: "Funds", message: `Need £1,000 for cleanup (including trap money).`, type: 'error' });
+                        return;
+                    }
+                    setCash(c => c + recoveredCash - 1000);
+                    addLog(`Shut down ${OPERATION_TYPES[op.type].name}. Recovered ${formatMoney(recoveredCash)} & Stock. Paid cleanup.`);
+                }
+
+                // Retrieve crew
+                setCrew(prev => ({ ...prev, [op.crewType]: (prev[op.crewType] || 0) + 1 }));
+
+                setOperations(prev => {
+                    const next = { ...prev };
+                    delete next[opId];
+                    return next;
+                });
+                
+                setModal(null);
+                passTime(4);
             };
 
             const installGrow = (opId) => {
@@ -1195,6 +1308,15 @@
                                     ))}
                                     <button onClick={() => setModal(null)} className="col-span-2 mt-2 py-2 text-xs text-gray-500">Cancel</button>
                                 </div>
+                            ) : modal.type === 'shutdown_confirm' ? (
+                                <>
+                                    <p className="text-gray-300 mb-6 whitespace-pre-line">{modal.message}</p>
+                                    <div className="space-y-2">
+                                        <button onClick={() => shutdownOp(modal.opId, 'abandon')} className="w-full bg-red-900/50 hover:bg-red-900 text-red-300 border border-red-800 font-bold py-3 rounded flex justify-between px-4"><span>Abandon Overnight</span> <span>+100 Heat</span></button>
+                                        <button onClick={() => shutdownOp(modal.opId, 'cleanup')} className="w-full bg-indigo-900/50 hover:bg-indigo-900 text-indigo-300 border border-indigo-800 font-bold py-3 rounded flex justify-between px-4"><span>Cleanup Crew</span> <span>£1,000</span></button>
+                                        <button onClick={() => setModal(null)} className="w-full bg-gray-800 text-gray-400 py-2 rounded text-xs">Cancel</button>
+                                    </div>
+                                </>
                             ) : (
                                 <>
                                     <p className="text-gray-300 mb-6 whitespace-pre-line">{modal.message}</p>
@@ -1293,7 +1415,7 @@
                     </div>
 
                     <div className="grid grid-cols-3 gap-2 text-sm font-mono">
-                        <div className="flex flex-col"><span className="text-gray-500 text-xs">Cash (Dirty)</span><span className="text-green-400 font-bold">{formatMoney(cash)}</span></div>
+                        <div className="flex flex-col"><span className="text-gray-500 text-xs">Cash (Dirty)</span><span className="text-green-400 font-bold">{formatMoney(cash)}</span><span className="text-[9px] text-gray-500">Exp: {formatMoney(currentDailyExpenses)}/day</span></div>
                         <div className="flex flex-col text-center"><span className="text-gray-500 text-xs">Bank (Clean)</span><span className="text-blue-400 font-bold">{formatMoney(bank)}</span></div>
                         <div className="flex flex-col text-right"><span className="text-gray-500 text-xs">Location</span><span className="text-white truncate">{location.name}</span></div>
                     </div>
@@ -1489,13 +1611,14 @@
                         <h2 className="text-xl font-bold text-white">Operations</h2>
                         <div className="bg-gray-900 p-3 rounded-lg border border-gray-800">
                             <div className="flex justify-between items-center mb-3">
-                                <div className="text-center"><div className="text-gray-500 text-[10px] uppercase mb-1">Pros (£500)</div><div className="text-xl font-bold text-green-400">{crew.paid}</div></div>
-                                <div className="text-center"><div className="text-gray-500 text-[10px] uppercase mb-1">Street (Free)</div><div className="text-xl font-bold text-yellow-500">{crew.street}</div></div>
-                                <div className="text-center"><div className="text-gray-500 text-[10px] uppercase mb-1">Pending £</div><div className="text-xl font-bold text-white">{formatMoney(Object.values(operations).reduce((acc, op) => acc + op.cash, 0))}</div></div>
+                                <div className="text-center"><div className="text-gray-500 text-[10px] uppercase mb-1">{CREW_CONFIG.roadman.label}</div><div className="text-xl font-bold text-green-400">{crew.roadman}</div><div className="text-[9px] text-gray-600">Wage: £{CREW_CONFIG.roadman.dailyWage}</div></div>
+                                <div className="text-center"><div className="text-gray-500 text-[10px] uppercase mb-1">{CREW_CONFIG.coerced.label}</div><div className="text-xl font-bold text-yellow-500">{crew.coerced}</div><div className="text-[9px] text-gray-600">Wage: £{CREW_CONFIG.coerced.dailyWage}</div></div>
+                                <div className="text-center"><div className="text-gray-500 text-[10px] uppercase mb-1">{CREW_CONFIG.blackmailed.label}</div><div className="text-xl font-bold text-red-500">{crew.blackmailed}</div><div className="text-[9px] text-gray-600">Wage: £{CREW_CONFIG.blackmailed.dailyWage}</div></div>
                             </div>
-                            <div className="grid grid-cols-2 gap-2">
-                                <button onClick={() => recruitCrew('paid')} disabled={modal || eventQueue.length > 0} className="bg-indigo-900/30 hover:bg-indigo-900/50 text-indigo-300 text-[10px] py-2 rounded border border-indigo-900/50 flex items-center justify-center gap-1 disabled:opacity-30"><UserPlus size={12}/> Recruit Pro (£500)</button>
-                                <button onClick={() => recruitCrew('street')} disabled={modal || eventQueue.length > 0} className="bg-yellow-900/30 hover:bg-yellow-900/50 text-yellow-500 text-[10px] py-2 rounded border border-yellow-900/50 flex items-center justify-center gap-1 disabled:opacity-30"><UserPlus size={12}/> Recruit Street (Risk +3%)</button>
+                            <div className="grid grid-cols-1 gap-2">
+                                <button onClick={() => recruitCrew('roadman')} disabled={modal || eventQueue.length > 0} className="bg-indigo-900/30 hover:bg-indigo-900/50 text-indigo-300 text-[10px] py-2 rounded border border-indigo-900/50 flex items-center justify-between px-3 disabled:opacity-30"><span>Recruit Exp. Roadman</span> <span>£{CREW_CONFIG.roadman.recruitCost}</span></button>
+                                <button onClick={() => recruitCrew('coerced')} disabled={modal || eventQueue.length > 0} className="bg-yellow-900/30 hover:bg-yellow-900/50 text-yellow-500 text-[10px] py-2 rounded border border-yellow-900/50 flex items-center justify-between px-3 disabled:opacity-30"><span>Coerce Vulnerable Youth (3% Risk)</span> <span>Free</span></button>
+                                <button onClick={() => recruitCrew('blackmailed')} disabled={modal || eventQueue.length > 0} className="bg-red-900/30 hover:bg-red-900/50 text-red-500 text-xs py-2 rounded border border-red-900/50 flex items-center justify-between px-3 disabled:opacity-30 font-bold"><span>Blackmail Youth (+5% Risk)</span> <span>Free</span></button>
                             </div>
                         </div>
 
@@ -1508,7 +1631,7 @@
                             {localOps.map(([opId, op]) => (
                                 <div key={opId} className="bg-gradient-to-br from-gray-900 to-gray-800 p-4 rounded-xl border border-gray-700 shadow-lg relative overflow-hidden">
                                     <div className="flex justify-between items-center border-b border-gray-700 pb-2 mb-3">
-                                        <div className="flex flex-col"><span className="text-indigo-400 font-bold text-sm">{OPERATION_TYPES[op.type].name}</span><span className={`text-[10px] uppercase font-bold ${op.crewType === 'street' ? 'text-red-400' : 'text-green-400'}`}>{op.crewType} Crew</span></div>
+                                        <div className="flex flex-col"><span className="text-indigo-400 font-bold text-sm">{OPERATION_TYPES[op.type].name}</span><span className={`text-[10px] uppercase font-bold ${op.crewType === 'blackmailed' ? 'text-red-500' : op.crewType === 'coerced' ? 'text-yellow-500' : 'text-green-400'}`}>{CREW_CONFIG[op.crewType]?.label || 'Crew'}</span></div>
                                         {op.hasGrow && <span className="text-xs flex items-center gap-1 text-green-400 bg-green-900/30 px-2 py-1 rounded"><Sprout size={12}/> Grow</span>}
                                     </div>
                                     <div className="space-y-2 mb-4">
@@ -1555,9 +1678,12 @@
                                             <div className={`text-lg font-mono font-bold ${op.risk > 50 ? 'text-red-500' : 'text-yellow-500'}`}>{Math.floor(op.risk)}%</div>
                                         </div>
                                     </div>
-                                    {OPERATION_TYPES[op.type].name === 'Luxury Rental' && !op.hasGrow && (
-                                        <button onClick={() => installGrow(opId)} disabled={modal || eventQueue.length > 0} className="w-full mt-3 border border-dashed border-green-800 text-green-600 p-2 rounded text-xs hover:bg-green-900/20 disabled:opacity-30">+ Install Grow Tent (£2,000)</button>
-                                    )}
+                                    <div className="grid grid-cols-2 gap-2 mt-2">
+                                        {OPERATION_TYPES[op.type].name === 'Luxury Rental' && !op.hasGrow && (
+                                            <button onClick={() => installGrow(opId)} disabled={modal || eventQueue.length > 0} className="w-full border border-dashed border-green-800 text-green-600 p-1 rounded text-[10px] hover:bg-green-900/20 disabled:opacity-30">+ Grow (£2k)</button>
+                                        )}
+                                        <button onClick={() => shutdownOp(opId, 'ask')} disabled={modal || eventQueue.length > 0} className={`w-full border border-dashed border-red-800 text-red-500 p-1 rounded text-[10px] hover:bg-red-900/20 disabled:opacity-30 ${OPERATION_TYPES[op.type].name === 'Luxury Rental' && !op.hasGrow ? '' : 'col-span-2'}`}><Ban size={10} className="inline mr-1"/>Shut Down</button>
+                                    </div>
                                 </div>
                             ))}
                             <div className="pt-4 border-t border-gray-800">
