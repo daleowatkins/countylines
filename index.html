@@ -115,7 +115,7 @@
                 id: 'grow_raid',
                 title: "TIP OFF: HUGE GROW",
                 message: "You got a tip off about a huge grow nearby. A rival gang left it unguarded for the night.\n\nIt's free real estate.",
-                image: "countylines/assets/carsmoke.png",
+                image: "growhouse.png",
                 options: [
                     { label: "Raid It", style: "green", action: 'raid_grow', desc: "Get 8lbs Weed (Free). 30% chance +250 Heat." },
                     { label: "Leave It", style: "gray", action: 'ignore', desc: "Too bait. No effect." }
@@ -125,7 +125,7 @@
                 id: 'smackhead_tip',
                 title: "SMACKHEAD TIP",
                 message: "A local junkie is offering to let you into a rival's trap house for £200. He says there's a kilo of heavy and cash in the safe.",
-                image: "countylines/assets/carsmoke.png",
+                image: "raid.png",
                 options: [
                     { label: "Pay £200", style: "green", action: 'raid_trap', desc: "Get 4kg Heroin + £2k-£5k. 5% RISK OF DEATH." },
                     { label: "Tell him do one", style: "gray", action: 'ignore', desc: "It's probably a setup." }
@@ -135,7 +135,7 @@
                 id: 'plug_deal',
                 title: "THE PLUG'S PLUG",
                 message: "Your main connect is feeling generous. He's offering a bulk deal on Coke if you take it NOW.",
-                image: "countylines/assets/carsmoke.png",
+                image: "deal.png",
                 options: [
                     { label: "Buy 5kg for £500", style: "green", action: 'buy_cheap_coke', desc: "Insane price. 10% Chance it's cut with brick dust (Lose Cash)." },
                     { label: "Pass", style: "gray", action: 'ignore', desc: "Save cash." }
@@ -281,7 +281,7 @@
 
             // --- Initialization ---
             useEffect(() => {
-                const save = localStorage.getItem('countyLinesSave_v8');
+                const save = localStorage.getItem('countyLinesSave_v9');
                 if (save) setHasSave(true);
                 generateNewPrices();
             }, [gameKey]);
@@ -295,12 +295,12 @@
                     strength, intel, inventory, location, prices, btcPrice, crew, 
                     operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState
                 };
-                localStorage.setItem('countyLinesSave_v8', JSON.stringify(saveState));
+                localStorage.setItem('countyLinesSave_v9', JSON.stringify(saveState));
                 }
             }, [day, hour, totalHours, cash, bank, crypto, debt, stress, health, investigation, investigationPausedUntil, vehicle, actionCooldowns, nextPayDay, strength, intel, inventory, location, prices, btcPrice, crew, operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState]);
 
             const loadGame = () => {
-                const saved = localStorage.getItem('countyLinesSave_v8');
+                const saved = localStorage.getItem('countyLinesSave_v9');
                 if (saved) {
                     try {
                         const data = JSON.parse(saved);
@@ -451,7 +451,7 @@
             // --- Game Lifecycle ---
 
             const startGame = (modeKey) => {
-                localStorage.removeItem('countyLinesSave_v8');
+                localStorage.removeItem('countyLinesSave_v9');
                 const settings = DIFFICULTY_SETTINGS[modeKey];
                 setDifficulty(modeKey);
                 setCash(settings.cash);
@@ -558,12 +558,12 @@
                     
                     const limit = DIFFICULTY_SETTINGS[difficulty].limit;
                     if (limit && newDay > limit && debt > 0) {
-                        localStorage.removeItem('countyLinesSave_v8');
+                        localStorage.removeItem('countyLinesSave_v9');
                         setModal({
                             title: "GAME OVER",
                             message: "Time's up fam.\n\nMiz pulled up on you. You didn't have the paper.\n\n*Bang*",
                             type: 'gameover',
-                            image: "countylines/assets/wasted.png"
+                            image: "wasted.png"
                         });
                         return;
                     }
@@ -579,9 +579,9 @@
                         title: "BUSTED",
                         message: "The net closed in. Armed police raided your spot.\n\nYou are serving 12 years for conspiracy to supply.\n\nGAME OVER.",
                         type: 'gameover',
-                        image: "countylines/assets/prison.png"
+                        image: "prison.png"
                     });
-                    localStorage.removeItem('countyLinesSave_v8');
+                    localStorage.removeItem('countyLinesSave_v9');
                 }
             };
 
@@ -692,9 +692,9 @@
                                 title: "BETRAYED",
                                 message: `You missed the ${formatMoney(totalWeekly)} payroll.\n\nYour crew turned on you. You were found in a ditch.\n\nGAME OVER.`,
                                 type: 'gameover',
-                                image: "countylines/assets/betrayed.png"
+                                image: "betrayed.png"
                             });
-                            localStorage.removeItem('countyLinesSave_v8');
+                            localStorage.removeItem('countyLinesSave_v9');
                             return; // Stop processing
                         } else {
                             setCash(c => c - totalWeekly);
@@ -792,9 +792,9 @@
                                 title: "AMBUSH",
                                 message: "It was a setup. You got rushed by 5 guys with shanks.\n\nGAME OVER.",
                                 type: 'gameover',
-                                image: "countylines/assets/betrayed.png"
+                                image: "betrayed.png"
                             });
-                            localStorage.removeItem('countyLinesSave_v8');
+                            localStorage.removeItem('countyLinesSave_v9');
                             return;
                         }
                         setCash(c => c - 200 + Math.floor(2000 + Math.random() * 3000));
@@ -910,7 +910,7 @@
                         addLog(`ESCAPED! You floored it. The ${vehicle.name} left them in the dust. (+50 Heat)`);
                     } else {
                         setInvestigation(1000); // Game Over next tick
-                        setModal({ title: "BUSTED", message: "Failed to outrun the feds. Arrested.", type: 'gameover', image: "countylines/assets/prison.png" });
+                        setModal({ title: "BUSTED", message: "Failed to outrun the feds. Arrested.", type: 'gameover', image: "prison.png" });
                     }
                 } else if (choice === 'ditch') {
                     if (Math.random() < 0.8) {
@@ -921,29 +921,28 @@
                         addLog("Ditched stash & car. Walked away clean.");
                     } else {
                         setInvestigation(1000);
-                        setModal({ title: "BUSTED", message: "Officer saw you toss the bag. Arrested.", type: 'gameover', image: "countylines/assets/prison.png" });
+                        setModal({ title: "BUSTED", message: "Officer saw you toss the bag. Arrested.", type: 'gameover', image: "prison.png" });
                     }
                 } else if (choice === 'pull_over') {
                     if (Math.random() < 0.2) {
                         addLog("Officer checked ID and let you go. Close one.");
                     } else {
                         setInvestigation(1000);
-                        setModal({ title: "BUSTED", message: "Officer searched the car. Found the work. Arrested.", type: 'gameover', image: "countylines/assets/prison.png" });
+                        setModal({ title: "BUSTED", message: "Officer searched the car. Found the work. Arrested.", type: 'gameover', image: "prison.png" });
                     }
                 }
             };
             
             const getEventContent = (evt) => {
-                const defaultImage = "countylines/assets/carsmoke.png";
                 let title = "";
                 let message = "";
-                let image = defaultImage;
+                let image = "carsmoke.png";
                 let options = [];
 
                 if (evt.type === 'london_opportunity') {
                     title = evt.data.title;
                     message = evt.data.message;
-                    image = evt.data.image || defaultImage;
+                    image = evt.data.image || "carsmoke.png";
                     options = evt.data.options.map(opt => ({
                         label: opt.label,
                         desc: opt.desc,
@@ -953,7 +952,7 @@
                 } else if (evt.type === 'pulled_over') {
                     title = "PULLED OVER";
                     message = `Feds are behind you.\nCurrent Vehicle: ${vehicle ? vehicle.name : 'Unknown'}`;
-                    image = "countylines/assets/siren.png";
+                    image = "siren.png";
                     options = [
                         { label: "Floor It", desc: "Try to outrun. Risk Game Over.", style: "red", handler: () => resolveRaid('run') },
                         { label: "Ditch & Run", desc: "Lose Car & Stock. 80% Survival.", style: "yellow", handler: () => resolveRaid('ditch') },
@@ -962,7 +961,7 @@
                 } else if (evt.type === 'raid') {
                     const locName = LOCATIONS.find(l=>l.id===evt.locationId)?.name || "Trap House";
                     title = "RAID IN PROGRESS";
-                    image = "countylines/assets/raid.png";
+                    image = "raid.png";
                     message = `${locName}\nAssets at Risk:\nCash: ${formatMoney(evt.cashAtRisk)}\nStock: ${evt.stockAtRisk} units`;
                     options = [
                         { label: "Flush Stash", desc: "Destroy stock. Save Cash (75%). Runner escapes.", style: "blue", handler: () => resolveRaid('flush') },
@@ -972,6 +971,14 @@
                 }
 
                 return { title, message, image, options };
+            };
+            
+            // --- Helper for Images ---
+            const getImgSrc = (imgName) => {
+                 // Try default path first, if error, fallback to 'countylines/assets/'
+                 // Note: The onError in the <img> tag handles the fallback logic dynamically.
+                 // We return the primary path here.
+                 return `assets/${imgName}`;
             };
 
             const performAction = (action) => {
@@ -987,7 +994,7 @@
                 setIntel(i => Math.min(100, i + action.intel));
                 
                 if (newHealth <= 0) {
-                    setModal({ title: "HOSPITALIZED", message: "You passed out. Woke up in A&E.\nLost 24 hours.", type: 'error', image: "countylines/assets/wasted.png" });
+                    setModal({ title: "HOSPITALIZED", message: "You passed out. Woke up in A&E.\nLost 24 hours.", type: 'error', image: "wasted.png" });
                     passTime(24, true); 
                 } else {
                     setModal(null);
@@ -1098,7 +1105,7 @@
                             title: "CAUGHT",
                             message: "Caught fare dodging. Police seized your bag.",
                             type: 'error',
-                            image: "countylines/assets/prison.png"
+                            image: "prison.png"
                         });
                         addLog("Caught bumping transport. Inventory seized.");
                         setInvestigation(inv => Math.min(1000, inv + 50));
@@ -1415,7 +1422,19 @@
                         
                         {/* New Image Added Here */}
                         <div className="mb-8 w-full max-w-sm rounded-lg overflow-hidden border border-gray-800 shadow-xl">
-                            <img src="countylines/assets/camdentrio.png" alt="Camden Trio" className="w-full h-auto object-cover opacity-80" onError={(e) => e.target.style.display = 'none'} />
+                            <img 
+                                src="assets/camdentrio.png" 
+                                alt="Camden Trio" 
+                                className="w-full h-auto object-cover opacity-80" 
+                                onError={(e) => {
+                                    const currentSrc = e.target.src;
+                                    if (!currentSrc.includes('countylines/')) {
+                                        e.target.src = 'countylines/assets/camdentrio.png';
+                                    } else {
+                                        e.target.style.display = 'none';
+                                    }
+                                }} 
+                            />
                         </div>
 
                         {hasSave && (
@@ -1448,7 +1467,18 @@
                             {/* Image Header if available, else simplified header */}
                             {modal.image ? (
                                 <div className="h-48 bg-gray-950 relative">
-                                     <img src={modal.image || "countylines/assets/carsmoke.png"} className="w-full h-full object-cover opacity-80" onError={(e) => { e.target.src = "countylines/assets/carsmoke.png"; }} />
+                                     <img 
+                                        src={getImgSrc(modal.image)} 
+                                        className="w-full h-full object-cover opacity-80" 
+                                        onError={(e) => {
+                                            const currentSrc = e.target.src;
+                                            if (!currentSrc.includes('countylines/')) {
+                                                e.target.src = 'countylines/' + getImgSrc(modal.image);
+                                            } else {
+                                                e.target.src = "assets/carsmoke.png"; // Ultimate fallback
+                                            }
+                                        }}
+                                     />
                                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
                                 </div>
                             ) : null}
@@ -1511,7 +1541,18 @@
                         <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4">
                             <div className="bg-gray-900 border border-gray-700 w-full max-w-sm rounded-lg overflow-hidden shadow-2xl relative">
                                 <div className="h-48 bg-gray-950 relative">
-                                     <img src={content.image} className="w-full h-full object-cover opacity-80" onError={(e) => { e.target.src = "countylines/assets/carsmoke.png"; }} />
+                                     <img 
+                                        src={getImgSrc(content.image)} 
+                                        className="w-full h-full object-cover opacity-80" 
+                                        onError={(e) => {
+                                            const currentSrc = e.target.src;
+                                            if (!currentSrc.includes('countylines/')) {
+                                                e.target.src = 'countylines/' + getImgSrc(content.image);
+                                            } else {
+                                                e.target.src = "assets/carsmoke.png"; 
+                                            }
+                                        }}
+                                     />
                                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
                                 </div>
                                 
