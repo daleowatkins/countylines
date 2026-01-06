@@ -281,7 +281,7 @@
 
             // --- Initialization ---
             useEffect(() => {
-                const save = localStorage.getItem('countyLinesSave_v9');
+                const save = localStorage.getItem('countyLinesSave_v10');
                 if (save) setHasSave(true);
                 generateNewPrices();
             }, [gameKey]);
@@ -295,12 +295,12 @@
                     strength, intel, inventory, location, prices, btcPrice, crew, 
                     operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState
                 };
-                localStorage.setItem('countyLinesSave_v9', JSON.stringify(saveState));
+                localStorage.setItem('countyLinesSave_v10', JSON.stringify(saveState));
                 }
             }, [day, hour, totalHours, cash, bank, crypto, debt, stress, health, investigation, investigationPausedUntil, vehicle, actionCooldowns, nextPayDay, strength, intel, inventory, location, prices, btcPrice, crew, operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState]);
 
             const loadGame = () => {
-                const saved = localStorage.getItem('countyLinesSave_v9');
+                const saved = localStorage.getItem('countyLinesSave_v10');
                 if (saved) {
                     try {
                         const data = JSON.parse(saved);
@@ -451,7 +451,7 @@
             // --- Game Lifecycle ---
 
             const startGame = (modeKey) => {
-                localStorage.removeItem('countyLinesSave_v9');
+                localStorage.removeItem('countyLinesSave_v10');
                 const settings = DIFFICULTY_SETTINGS[modeKey];
                 setDifficulty(modeKey);
                 setCash(settings.cash);
@@ -558,7 +558,7 @@
                     
                     const limit = DIFFICULTY_SETTINGS[difficulty].limit;
                     if (limit && newDay > limit && debt > 0) {
-                        localStorage.removeItem('countyLinesSave_v9');
+                        localStorage.removeItem('countyLinesSave_v10');
                         setModal({
                             title: "GAME OVER",
                             message: "Time's up fam.\n\nMiz pulled up on you. You didn't have the paper.\n\n*Bang*",
@@ -581,7 +581,7 @@
                         type: 'gameover',
                         image: "prison.png"
                     });
-                    localStorage.removeItem('countyLinesSave_v9');
+                    localStorage.removeItem('countyLinesSave_v10');
                 }
             };
 
@@ -694,7 +694,7 @@
                                 type: 'gameover',
                                 image: "betrayed.png"
                             });
-                            localStorage.removeItem('countyLinesSave_v9');
+                            localStorage.removeItem('countyLinesSave_v10');
                             return; // Stop processing
                         } else {
                             setCash(c => c - totalWeekly);
@@ -794,7 +794,7 @@
                                 type: 'gameover',
                                 image: "betrayed.png"
                             });
-                            localStorage.removeItem('countyLinesSave_v9');
+                            localStorage.removeItem('countyLinesSave_v10');
                             return;
                         }
                         setCash(c => c - 200 + Math.floor(2000 + Math.random() * 3000));
@@ -1459,7 +1459,7 @@
 
             // --- VIEW: GAME ---
             return (
-                <div key={gameKey} className="bg-gray-950 min-h-screen text-gray-100 font-sans flex flex-col overflow-hidden max-w-md mx-auto border-x border-gray-800 shadow-2xl no-select">
+                <div key={gameKey} className="bg-gray-950 min-h-screen text-gray-100 font-sans flex flex-col overflow-hidden w-full mx-auto border-x border-gray-800 shadow-2xl no-select">
                 {/* MODAL */}
                 {modal && (
                     <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4">
@@ -1683,6 +1683,7 @@
                                 <AlertTriangle className="text-red-600 shrink-0" size={16} /><p className="text-xs text-red-500">Connect Unavailable. You can only BUY stock in <strong>London</strong>. Set up Ops here to SELL.</p>
                             </div>
                         )}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {productsConfig.map(prod => {
                             const priceData = prices[location.id]?.[prod.id];
                             const owned = inventory[prod.id] || 0;
@@ -1698,6 +1699,7 @@
                                 </div>
                             );
                         })}
+                        </div>
                     </div>
                     )}
 
@@ -1748,6 +1750,7 @@
                             </ul>
                         </div>
 
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {LOCATIONS.map(loc => {
                             if (loc.id === location.id) return null;
                             const details = calculateTravelDetails(loc);
@@ -1755,7 +1758,7 @@
                             const moneyWaiting = getCollectableCashAtLocation(loc.id);
                             const stockWaiting = getStockAtLocation(loc.id);
                             return (
-                            <div key={loc.id} className="bg-gray-900 border border-gray-800 p-4 rounded-lg mb-4">
+                            <div key={loc.id} className="bg-gray-900 border border-gray-800 p-4 rounded-lg">
                                 <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-3"><MapPin size={18} className={opsCount > 0 ? "text-green-500" : "text-gray-600"} /><div className="text-left"><div className="font-bold text-gray-200">{loc.name}</div><div className="text-xs text-gray-500 uppercase">{loc.type} • {details.dist} miles</div></div></div>
                                     <div className="flex flex-col items-end">
@@ -1773,6 +1776,7 @@
                             </div>
                             )
                         })}
+                        </div>
                     </div>
                     )}
 
@@ -1795,7 +1799,7 @@
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 gap-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                 {HEAT_ACTIONS.map(action => {
                                     const lastUsed = actionCooldowns[action.id] || 0;
                                     const onCooldown = day < lastUsed + action.cooldownDays;
@@ -1872,6 +1876,7 @@
                                 <button onClick={openActionMenu} disabled={modal || eventQueue.length > 0} className="flex items-center gap-1 bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white px-2 py-1 rounded text-[10px] transition-colors disabled:opacity-30"><PlayCircle size={12} /> Actions</button>
                             </div>
                             {localOps.length === 0 && <div className="bg-gray-900/50 border border-dashed border-gray-800 p-4 rounded text-center text-gray-500 text-sm">No active lines in {location.name}.</div>}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {localOps.map(([opId, op]) => (
                                 <div key={opId} className="bg-gradient-to-br from-gray-900 to-gray-800 p-4 rounded-xl border border-gray-700 shadow-lg relative overflow-hidden">
                                     <div className="flex justify-between items-center border-b border-gray-700 pb-2 mb-3">
@@ -1886,7 +1891,7 @@
                                             const transferKey = `${opId}_${prod.id}`;
                                             const transferVal = transferAmounts[transferKey] || 0;
                                             return (
-                                            <div key={prod.id} className="bg-gray-900/50 p-2 rounded border border-gray-800/50">
+                                            <div key={prod.id} className="bg-gray-950/50 p-2 rounded border border-gray-800/50">
                                                 <div className="grid grid-cols-5 gap-1 items-center font-mono text-xs text-center mb-2">
                                                     <span className="text-left text-gray-300 font-sans font-bold">{prod.name}</span>
                                                     <span className="text-gray-400">{bagAmount}</span>
@@ -1930,12 +1935,13 @@
                                     </div>
                                 </div>
                             ))}
+                            </div>
                             <div className="pt-4 border-t border-gray-800">
                                 <h4 className="text-sm text-gray-400 font-bold mb-2 uppercase">Establish New Line</h4>
                                 {location.type === 'city' ? (
                                     <div className="text-red-400 text-xs bg-red-900/20 p-2 rounded text-center">Can't set up in the City. Go Country.</div>
                                 ) : (
-                                    <div className="grid grid-cols-1 gap-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                                         {Object.entries(OPERATION_TYPES).map(([key, type]) => (
                                             <button key={key} onClick={() => setupOperation(key)} disabled={modal || eventQueue.length > 0} className="bg-gray-800 hover:bg-indigo-900/30 border border-gray-600 p-3 rounded text-left transition-all disabled:opacity-30 flex justify-between items-center">
                                                 <div><div className="font-bold text-indigo-300 text-xs">{type.name}</div><div className="text-[9px] text-gray-500">{type.description}</div></div>
