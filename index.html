@@ -278,7 +278,7 @@
 
             // --- Initialization ---
             useEffect(() => {
-                const save = localStorage.getItem('countyLinesSave_v7');
+                const save = localStorage.getItem('countyLinesSave_v8');
                 if (save) setHasSave(true);
                 generateNewPrices();
             }, [gameKey]);
@@ -292,12 +292,12 @@
                     strength, intel, inventory, location, prices, btcPrice, crew, 
                     operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState
                 };
-                localStorage.setItem('countyLinesSave_v7', JSON.stringify(saveState));
+                localStorage.setItem('countyLinesSave_v8', JSON.stringify(saveState));
                 }
             }, [day, hour, totalHours, cash, bank, crypto, debt, stress, health, investigation, investigationPausedUntil, vehicle, actionCooldowns, nextPayDay, strength, intel, inventory, location, prices, btcPrice, crew, operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState]);
 
             const loadGame = () => {
-                const saved = localStorage.getItem('countyLinesSave_v7');
+                const saved = localStorage.getItem('countyLinesSave_v8');
                 if (saved) {
                     try {
                         const data = JSON.parse(saved);
@@ -448,7 +448,7 @@
             // --- Game Lifecycle ---
 
             const startGame = (modeKey) => {
-                localStorage.removeItem('countyLinesSave_v7');
+                localStorage.removeItem('countyLinesSave_v8');
                 const settings = DIFFICULTY_SETTINGS[modeKey];
                 setDifficulty(modeKey);
                 setCash(settings.cash);
@@ -555,7 +555,7 @@
                     
                     const limit = DIFFICULTY_SETTINGS[difficulty].limit;
                     if (limit && newDay > limit && debt > 0) {
-                        localStorage.removeItem('countyLinesSave_v7');
+                        localStorage.removeItem('countyLinesSave_v8');
                         setModal({
                             title: "GAME OVER",
                             message: "Time's up fam.\n\nMiz pulled up on you. You didn't have the paper.\n\n*Bang*",
@@ -576,7 +576,7 @@
                         message: "The net closed in. Armed police raided your spot.\n\nYou are serving 12 years for conspiracy to supply.\n\nGAME OVER.",
                         type: 'gameover'
                     });
-                    localStorage.removeItem('countyLinesSave_v7');
+                    localStorage.removeItem('countyLinesSave_v8');
                 }
             };
 
@@ -688,7 +688,7 @@
                                 message: `You missed the ${formatMoney(totalWeekly)} payroll.\n\nYour crew turned on you. You were found in a ditch.\n\nGAME OVER.`,
                                 type: 'gameover'
                             });
-                            localStorage.removeItem('countyLinesSave_v7');
+                            localStorage.removeItem('countyLinesSave_v8');
                             return; // Stop processing
                         } else {
                             setCash(c => c - totalWeekly);
@@ -787,7 +787,7 @@
                                 message: "It was a setup. You got rushed by 5 guys with shanks.\n\nGAME OVER.",
                                 type: 'gameover'
                             });
-                            localStorage.removeItem('countyLinesSave_v7');
+                            localStorage.removeItem('countyLinesSave_v8');
                             return;
                         }
                         setCash(c => c - 200 + Math.floor(2000 + Math.random() * 3000));
@@ -1362,7 +1362,13 @@
             if (gameState === 'menu') {
                 return (
                     <div className="bg-gray-950 min-h-screen text-gray-100 font-sans flex flex-col justify-center items-center p-6 no-select">
-                        <h1 className="text-4xl font-black text-indigo-500 mb-8 uppercase tracking-tighter text-center">County Lines<br/><span className="text-white text-2xl">Manager</span></h1>
+                        <h1 className="text-4xl font-black text-indigo-500 mb-4 uppercase tracking-tighter text-center">County Lines<br/><span className="text-white text-2xl">Manager</span></h1>
+                        
+                        {/* New Image Added Here */}
+                        <div className="mb-8 w-full max-w-sm rounded-lg overflow-hidden border border-gray-800 shadow-xl">
+                            <img src="assets/camdentrio.png" alt="Camden Trio" className="w-full h-auto object-cover opacity-80" onError={(e) => e.target.style.display = 'none'} />
+                        </div>
+
                         {hasSave && (
                             <button onClick={loadGame} className="w-full max-w-sm bg-indigo-900 border border-indigo-500 p-4 rounded-lg mb-6 flex items-center justify-center gap-2 hover:bg-indigo-800 transition-all shadow-lg shadow-indigo-900/50">
                                 <Save size={20} /> <span className="font-bold text-white">CONTINUE CAMPAIGN</span>
@@ -1536,7 +1542,19 @@
                     </div>
 
                     <div className="grid grid-cols-3 gap-2 text-sm font-mono">
-                        <div className="flex flex-col"><span className="text-gray-500 text-xs">Cash (Dirty)</span><span className="text-green-400 font-bold">{formatMoney(cash)}</span><span className="text-[9px] text-gray-500">Exp: {formatMoney(currentDailyExpenses)}/day</span></div>
+                        <div className="flex flex-col">
+                            <span className="text-gray-500 text-xs">Cash (Dirty)</span>
+                            <span className="text-green-400 font-bold">{formatMoney(cash)}</span>
+                            {currentDailyExpenses > 0 && (
+                                <div className="mt-1 p-2 bg-red-900 border border-red-500 rounded shadow-lg animate-pulse">
+                                    <span className="text-white font-black text-[10px] block uppercase tracking-widest mb-1">WAGES DUE</span>
+                                    <div className="flex justify-between items-end">
+                                        <span className="text-white font-black text-lg leading-none">{formatMoney(currentDailyExpenses * 7)}</span>
+                                        <span className="text-red-200 text-[10px] font-bold">Day {nextPayDay}</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                         <div className="flex flex-col text-center"><span className="text-gray-500 text-xs">Bank (Clean)</span><span className="text-blue-400 font-bold">{formatMoney(bank)}</span></div>
                         <div className="flex flex-col text-right"><span className="text-gray-500 text-xs">Location</span><span className="text-white truncate">{location.name}</span></div>
                     </div>
@@ -1569,9 +1587,12 @@
                     {/* MARKET TAB */}
                     {activeTab === 'market' && (
                     <div className="space-y-4">
-                        <div className="flex justify-between items-end mb-4">
-                            <h2 className="text-xl font-bold text-white">Supply Market</h2>
-                            {location.type === 'city' ? <span className="text-xs bg-indigo-900 text-indigo-300 px-2 py-1 rounded">Supplier Hub</span> : <span className="text-xs bg-gray-800 text-gray-500 px-2 py-1 rounded">Local Dealers</span>}
+                        <div className="flex justify-between items-center mb-4">
+                            <div>
+                                <h2 className="text-xl font-bold text-white leading-none">Supply Market</h2>
+                                {location.type === 'city' ? <span className="text-[10px] text-indigo-400">Supplier Hub</span> : <span className="text-[10px] text-gray-500">Local Dealers</span>}
+                            </div>
+                            <button onClick={openActionMenu} disabled={modal || eventQueue.length > 0} className="flex items-center gap-1 bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white px-3 py-2 rounded text-xs transition-colors disabled:opacity-30"><PlayCircle size={14} /> Actions</button>
                         </div>
                         {location.id !== 'lon' && (
                             <div className="bg-red-900/20 border border-red-700/50 p-3 rounded mb-4 flex gap-2 items-start">
@@ -1732,14 +1753,32 @@
                         <h2 className="text-xl font-bold text-white">Operations</h2>
                         <div className="bg-gray-900 p-3 rounded-lg border border-gray-800">
                             <div className="flex justify-between items-center mb-3">
-                                <div className="text-center"><div className="text-gray-500 text-[10px] uppercase mb-1">{CREW_CONFIG.roadman.label}</div><div className="text-xl font-bold text-green-400">{crew.roadman}</div><div className="text-[9px] text-gray-600">Wage: £{CREW_CONFIG.roadman.dailyWage}</div></div>
-                                <div className="text-center"><div className="text-gray-500 text-[10px] uppercase mb-1">{CREW_CONFIG.coerced.label}</div><div className="text-xl font-bold text-yellow-500">{crew.coerced}</div><div className="text-[9px] text-gray-600">Wage: £{CREW_CONFIG.coerced.dailyWage}</div></div>
-                                <div className="text-center"><div className="text-gray-500 text-[10px] uppercase mb-1">{CREW_CONFIG.blackmailed.label}</div><div className="text-xl font-bold text-red-500">{crew.blackmailed}</div><div className="text-[9px] text-gray-600">Wage: £{CREW_CONFIG.blackmailed.dailyWage}</div></div>
+                                <div className="text-center"><div className="text-gray-500 text-[10px] uppercase mb-1">{CREW_CONFIG.roadman.label}</div><div className="text-xl font-bold text-green-400">{crew.roadman}</div><div className="text-[9px] text-gray-600">Wage: £{CREW_CONFIG.roadman.dailyWage * 7}/wk</div></div>
+                                <div className="text-center"><div className="text-gray-500 text-[10px] uppercase mb-1">{CREW_CONFIG.coerced.label}</div><div className="text-xl font-bold text-yellow-500">{crew.coerced}</div><div className="text-[9px] text-gray-600">Wage: £{CREW_CONFIG.coerced.dailyWage * 7}/wk</div></div>
+                                <div className="text-center"><div className="text-gray-500 text-[10px] uppercase mb-1">{CREW_CONFIG.blackmailed.label}</div><div className="text-xl font-bold text-red-500">{crew.blackmailed}</div><div className="text-[9px] text-gray-600">Wage: £{CREW_CONFIG.blackmailed.dailyWage * 7}/wk</div></div>
                             </div>
                             <div className="grid grid-cols-1 gap-2">
-                                <button onClick={() => recruitCrew('roadman')} disabled={modal || eventQueue.length > 0} className="bg-indigo-900/30 hover:bg-indigo-900/50 text-indigo-300 text-[10px] py-2 rounded border border-indigo-900/50 flex items-center justify-between px-3 disabled:opacity-30"><span>Recruit Exp. Roadman</span> <span>£{CREW_CONFIG.roadman.recruitCost}</span></button>
-                                <button onClick={() => recruitCrew('coerced')} disabled={modal || eventQueue.length > 0} className="bg-yellow-900/30 hover:bg-yellow-900/50 text-yellow-500 text-[10px] py-2 rounded border border-yellow-900/50 flex items-center justify-between px-3 disabled:opacity-30"><span>Coerce Vulnerable Youth (3% Risk)</span> <span>Free</span></button>
-                                <button onClick={() => recruitCrew('blackmailed')} disabled={modal || eventQueue.length > 0} className="bg-red-900/30 hover:bg-red-900/50 text-red-500 text-xs py-2 rounded border border-red-900/50 flex items-center justify-between px-3 disabled:opacity-30 font-bold"><span>Blackmail Youth (+5% Risk)</span> <span>Free</span></button>
+                                <button onClick={() => recruitCrew('roadman')} disabled={modal || eventQueue.length > 0} className="bg-indigo-900/30 hover:bg-indigo-900/50 text-indigo-300 text-[10px] py-3 rounded border border-indigo-900/50 flex items-center justify-between px-3 disabled:opacity-30 text-left">
+                                    <div>
+                                        <div className="font-bold">Recruit Exp. Roadman</div>
+                                        <div className="text-[9px] text-indigo-400">Wage: £{CREW_CONFIG.roadman.dailyWage * 7}/wk</div>
+                                    </div>
+                                    <div className="font-mono">£{CREW_CONFIG.roadman.recruitCost}</div>
+                                </button>
+                                <button onClick={() => recruitCrew('coerced')} disabled={modal || eventQueue.length > 0} className="bg-yellow-900/30 hover:bg-yellow-900/50 text-yellow-500 text-[10px] py-3 rounded border border-yellow-900/50 flex items-center justify-between px-3 disabled:opacity-30 text-left">
+                                    <div>
+                                        <div className="font-bold">Coerce Youth (3% Risk)</div>
+                                        <div className="text-[9px] text-yellow-400">Wage: £{CREW_CONFIG.coerced.dailyWage * 7}/wk</div>
+                                    </div>
+                                    <div className="font-mono">Free</div>
+                                </button>
+                                <button onClick={() => recruitCrew('blackmailed')} disabled={modal || eventQueue.length > 0} className="bg-red-900/30 hover:bg-red-900/50 text-red-500 text-[10px] py-3 rounded border border-red-900/50 flex items-center justify-between px-3 disabled:opacity-30 text-left">
+                                    <div>
+                                        <div className="font-bold">Blackmail Youth (+5% Risk)</div>
+                                        <div className="text-[9px] text-red-400">Wage: £{CREW_CONFIG.blackmailed.dailyWage * 7}/wk</div>
+                                    </div>
+                                    <div className="font-mono">Free</div>
+                                </button>
                             </div>
                         </div>
 
@@ -1763,7 +1802,7 @@
                                             const transferKey = `${opId}_${prod.id}`;
                                             const transferVal = transferAmounts[transferKey] || 0;
                                             return (
-                                            <div key={prod.id} className="bg-gray-950/50 p-2 rounded border border-gray-800/50">
+                                            <div key={prod.id} className="bg-gray-900/50 p-2 rounded border border-gray-800/50">
                                                 <div className="grid grid-cols-5 gap-1 items-center font-mono text-xs text-center mb-2">
                                                     <span className="text-left text-gray-300 font-sans font-bold">{prod.name}</span>
                                                     <span className="text-gray-400">{bagAmount}</span>
