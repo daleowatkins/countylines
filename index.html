@@ -325,6 +325,7 @@
             const [showTutorial, setShowTutorial] = useState(false);
             const [launderAmount, setLaunderAmount] = useState('');
             const [showUpdateNotice, setShowUpdateNotice] = useState(false);
+            const [dontShowAgain, setDontShowAgain] = useState(false);
 
             // Event Management State
             const [customEvents, setCustomEvents] = useState(LONDON_EVENTS);
@@ -2425,8 +2426,8 @@
                                 <div className="space-y-2">
                                     <button 
                                         onClick={() => {
+                                            if (dontShowAgain) localStorage.setItem('skillsUpdateSeen', '1');
                                             setShowUpdateNotice(false);
-                                            localStorage.setItem('skillsUpdateSeen', '1');
                                             window.open('README.md', '_blank');
                                         }}
                                         className="w-full bg-white hover:bg-gray-100 text-indigo-900 font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
@@ -2435,14 +2436,23 @@
                                     </button>
                                     <button 
                                         onClick={() => {
+                                            if (dontShowAgain) localStorage.setItem('skillsUpdateSeen', '1');
                                             setShowUpdateNotice(false);
-                                            localStorage.setItem('skillsUpdateSeen', '1');
                                         }}
                                         className="w-full bg-indigo-800/50 hover:bg-indigo-800 text-white font-bold py-3 rounded-lg transition-colors"
                                     >
                                         Start Playing
                                     </button>
                                 </div>
+                                <label className="flex items-center justify-center gap-2 mt-4 text-xs text-indigo-200 cursor-pointer hover:text-white transition-colors">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={dontShowAgain} 
+                                        onChange={(e) => setDontShowAgain(e.target.checked)}
+                                        className="rounded border-indigo-400 bg-indigo-900/30 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                    />
+                                    <span>Don't show this message next time</span>
+                                </label>
                             </div>
                         </div>
                     </div>
