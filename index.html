@@ -376,7 +376,7 @@
                 if (save) setHasSave(true);
                 generateNewPrices();
                 // Check if update notice should be shown
-                const seenUpdate = localStorage.getItem('skillsUpdateSeen');
+                const seenUpdate = localStorage.getItem('skillsUpdateSeen_v2');
                 if (!seenUpdate) {
                     setShowUpdateNotice(true);
                 }
@@ -2426,7 +2426,7 @@
                                 <div className="space-y-2">
                                     <button 
                                         onClick={() => {
-                                            if (dontShowAgain) localStorage.setItem('skillsUpdateSeen', '1');
+                                            if (dontShowAgain) localStorage.setItem('skillsUpdateSeen_v2', '1');
                                             setShowUpdateNotice(false);
                                             window.open('README.md', '_blank');
                                         }}
@@ -2436,7 +2436,7 @@
                                     </button>
                                     <button 
                                         onClick={() => {
-                                            if (dontShowAgain) localStorage.setItem('skillsUpdateSeen', '1');
+                                            if (dontShowAgain) localStorage.setItem('skillsUpdateSeen_v2', '1');
                                             setShowUpdateNotice(false);
                                         }}
                                         className="w-full bg-indigo-800/50 hover:bg-indigo-800 text-white font-bold py-3 rounded-lg transition-colors"
