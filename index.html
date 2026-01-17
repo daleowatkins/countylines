@@ -308,6 +308,7 @@
             const [laundering, setLaundering] = useState([]);
             const [bannedLocations, setBannedLocations] = useState({}); 
             const [eventQueue, setEventQueue] = useState([]); 
+            const [eventOutcome, setEventOutcome] = useState(null); // { title, message }
 
             // Admin State
             const [adminClicks, setAdminClicks] = useState(0);
@@ -1236,20 +1237,31 @@
                     return;
                 }
 
+                let outcomeTitle = null;
+                let outcomeMsg = null;
+
                 if (choice === 'ignore') {
                     addLog("Ignored opportunity.");
+                    outcomeTitle = "IGNORED";
+                    outcomeMsg = "You walked past the opportunity without looking back.";
                 } else if (choice === 'raid_grow') {
                     setInventory(inv => ({ ...inv, 'p1': (inv['p1'] || 0) + 8 })); // 8lbs Weed
-                    addLog("Raided the grow. +8lbs Weed secured.");
-                    if (Math.random() < 0.3) {
+                    const gotHeat = Math.random() < 0.3;
+                    if (gotHeat) {
                         setInvestigation(inv => Math.min(1000, inv + 250));
-                        addLog("WARNING: Locals saw you. Heat +250.");
+                        outcomeTitle = "RAIDED";
+                        outcomeMsg = "You grabbed the grow successfully. But locals saw you leaving.\n\n+8lbs Weed\n⚠️ Heat +250";
+                    } else {
+                        outcomeTitle = "SUCCESS";
+                        outcomeMsg = "Clean raid. In and out without a trace.\n\n+8lbs Weed";
                     }
                 } else if (choice === 'raid_trap') {
                     if (cash < 200) {
-                        addLog("Couldn't afford the tip. Missed out.");
+                        outcomeTitle = "BROKE";
+                        outcomeMsg = "You couldn't afford the £200 tip. Missed the whole operation.";
                     } else {
-                        if (Math.random() < 0.05) {
+                        const isSetup = Math.random() < 0.05;
+                        if (isSetup) {
                             setModal({
                                 title: "AMBUSH",
                                 message: "It was a setup. You got rushed by 5 guys with shanks.\n\nGAME OVER.",
@@ -1259,80 +1271,101 @@
                             localStorage.removeItem('countyLinesSave_v10');
                             return;
                         }
-                        setCash(c => c - 200 + Math.floor(2000 + Math.random() * 3000));
+                        const profit = Math.floor(2000 + Math.random() * 3000);
+                        setCash(c => c - 200 + profit);
                         setInventory(inv => ({ ...inv, 'p4': (inv['p4'] || 0) + 4 })); // 4kg Heroin
-                        addLog("Hit the trap. Got 4kg Heroin and cleared the safe.");
+                        outcomeTitle = "JACKPOT";
+                        outcomeMsg = `Hit the trap and cleared the safe.\n\n+4kg Heroin\n+£${profit.toLocaleString()} (after £200 tip)`;
                     }
                 } else if (choice === 'buy_cheap_coke') {
                     if (cash < 500) {
-                        addLog("Couldn't afford the deal.");
+                        outcomeTitle = "BROKE";
+                        outcomeMsg = "You didn't have £500 for the deal. Missed out.";
                     } else {
                         setCash(c => c - 500);
-                        if (Math.random() < 0.1) {
-                            addLog("SCAMMED. The brick was just crushed drywall.");
+                        const scammed = Math.random() < 0.1;
+                        if (scammed) {
+                            outcomeTitle = "SCAMMED";
+                            outcomeMsg = "The brick was just crushed drywall.\n\nLost £500.";
                         } else {
                             setInventory(inv => ({ ...inv, 'p2': (inv['p2'] || 0) + 5 })); // 5kg Coke
-                            addLog("Deal done. +5kg Coke secured.");
+                            outcomeTitle = "SUCCESS";
+                            outcomeMsg = "Deal done clean. Premium coke.\n\n+5kg Coke\n-£500";
                         }
                     }
                 } else if (choice === 'intercept_accept') {
                     if (cash < 100) {
-                        addLog("Couldn't afford the £100.");
+                        outcomeTitle = "BROKE";
+                        outcomeMsg = "You couldn't afford the £100. Walked past the opportunity.";
                     } else {
                         setCash(c => c - 100);
-                        if (Math.random() < 0.1) {
-                            addLog("SCAMMED. That was just washing powder.");
+                        const scammed = Math.random() < 0.1;
+                        if (scammed) {
+                            outcomeTitle = "SCAMMED";
+                            outcomeMsg = "That was just washing powder.\n\nLost £100.";
                         } else {
                             setInventory(inv => ({ ...inv, 'p3': (inv['p3'] || 0) + 1 })); // 1kg Speed
-                            addLog("The Intercept scored. +1kg Speed (£1.5k value).");
+                            outcomeTitle = "SUCCESS";
+                            outcomeMsg = "The intercept scored big.\n\n+1kg Speed\n-£100";
                         }
                     }
                 } else if (choice === 'drought_run') {
                     if (cash < 50) {
-                        addLog("Couldn't afford the train ticket.");
+                        outcomeTitle = "BROKE";
+                        outcomeMsg = "Couldn't afford the £50 train ticket. Opportunity missed.";
                     } else {
                         setCash(c => c - 50);
-                        if (Math.random() < 0.25) {
+                        const busted = Math.random() < 0.25;
+                        if (busted) {
                             const newInv = {};
                             productsConfig.forEach(p => newInv[p.id] = 0);
                             setInventory(newInv);
-                            addLog("BUSTED. Transport Police stopped the train. Lost all inventory.");
+                            outcomeTitle = "BUSTED";
+                            outcomeMsg = "Transport Police stopped the train.\n\n⚠️ Lost all inventory";
                         } else {
-                            addLog("Made the run. Countryside is eating. +300% sales prices (5 days).");
-                            // 5 days = 120 hours boost
                             localStorage.setItem('droughtBoostEnd', (totalHours + 120).toString());
+                            outcomeTitle = "SUCCESS";
+                            outcomeMsg = "Made the run. The countryside is eating.\n\n+300% sales prices (5 days)";
                         }
                     }
                 } else if (choice === 'feature_join') {
                     if (cash < 200) {
-                        addLog("Couldn't afford the cameraman fee.");
+                        outcomeTitle = "BROKE";
+                        outcomeMsg = "Couldn't afford the £200 cameraman fee. No feature for you.";
                     } else {
                         setCash(c => c - 200);
-                        if (Math.random() < 0.3) {
+                        const jumped = Math.random() < 0.3;
+                        if (jumped) {
                             const healthLoss = Math.floor(health * 0.5);
                             setHealth(h => Math.max(0, h - healthLoss));
-                            addLog("It was a setup. Got jumped on camera. -50% Health.");
+                            outcomeTitle = "SET UP";
+                            outcomeMsg = `Got jumped on camera for the whole internet to see.\n\n⚠️ -${healthLoss} Health\n-£200`;
                         } else {
-                            addLog("Cameo was fire. Clout up. +2x sales speed (7 days).");
-                            // 7 days = 168 hours boost
                             localStorage.setItem('featureBoostEnd', (totalHours + 168).toString());
+                            outcomeTitle = "VIRAL";
+                            outcomeMsg = "Your cameo went viral. Clout is up.\n\n+2x sales speed (7 days)";
                         }
                     }
                 } else if (choice === 'insider_invest') {
                     if (cash < 5000) {
-                        addLog("Couldn't afford the £5k investment.");
+                        outcomeTitle = "BROKE";
+                        outcomeMsg = "Didn't have £5k for the investment.";
                     } else {
                         setCash(c => c - 5000);
-                        if (Math.random() < 0.4) {
-                            addLog("RUG PULL. Your cousin ghosted. Lost the £5k.");
+                        const rugPull = Math.random() < 0.4;
+                        if (rugPull) {
+                            outcomeTitle = "RUG PULL";
+                            outcomeMsg = "Your cousin ghosted with the money.\n\n⚠️ Lost £5,000";
                         } else {
                             setCash(c => c + 100000);
-                            addLog("BLESSED. Coin pumped hard. +£100k profit (returned in 24h).");
+                            outcomeTitle = "BLESSED";
+                            outcomeMsg = "The coin pumped hard. You're up big.\n\n+£100,000 profit";
                         }
                     }
                 } else if (choice === 'fire_grab') {
-                    if (Math.random() < 0.1) {
-                        // 10% death
+                    const death = Math.random() < 0.1;
+                    const injured = !death && Math.random() < 0.3 / 0.9;
+                    if (death) {
                         setModal({
                             title: "TRAPPED",
                             message: "The floor collapsed. You couldn't escape.\n\nGAME OVER.",
@@ -1341,18 +1374,21 @@
                         });
                         localStorage.removeItem('countyLinesSave_v10');
                         return;
-                    } else if (Math.random() < 0.3) {
-                        // 30% smoke inhalation (of the remaining 90%)
+                    } else if (injured) {
                         setHealth(h => Math.max(0, h - 20));
-                        addLog("Grabbed 5lbs High-Grade Weed. Smoke inhalation. -20 Health.");
                         setInventory(inv => ({ ...inv, 'p1': (inv['p1'] || 0) + 5 }));
+                        outcomeTitle = "INJURED";
+                        outcomeMsg = "Grabbed the weed but took heavy smoke damage.\n\n+5lbs Weed\n⚠️ -20 Health";
                     } else {
-                        // 60% clean success
                         setInventory(inv => ({ ...inv, 'p1': (inv['p1'] || 0) + 5 }));
-                        addLog("Grabbed 5lbs High-Grade Weed before it burned.");
+                        outcomeTitle = "SUCCESS";
+                        outcomeMsg = "Grabbed the high-grade before it burned. Clean getaway.\n\n+5lbs Weed";
                     }
                 }
 
+                if (outcomeTitle && outcomeMsg) {
+                    setEventOutcome({ title: outcomeTitle, message: outcomeMsg });
+                }
                 setEventQueue(prev => prev.slice(1));
             };
 
@@ -2494,6 +2530,25 @@
                         </div>
                     </div>
                 )}
+                {/* EVENT OUTCOME MODAL */}
+                {eventOutcome && (
+                    <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4">
+                        <div className="bg-gradient-to-br from-gray-900 to-gray-950 border-2 border-indigo-600 w-full max-w-sm rounded-xl overflow-hidden shadow-2xl">
+                            <div className="p-6 text-center">
+                                <h2 className="text-3xl font-black text-white mb-4 uppercase tracking-tight">{eventOutcome.title}</h2>
+                                <div className="bg-gray-900/60 p-4 rounded border border-gray-700 mb-6">
+                                    <p className="text-gray-200 text-sm whitespace-pre-line">{eventOutcome.message}</p>
+                                </div>
+                                <button 
+                                    onClick={() => setEventOutcome(null)}
+                                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition-colors"
+                                >
+                                    Continue
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {/* MODAL */}
                 {modal && (
                     <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4">
@@ -3320,7 +3375,7 @@
                             const effectiveBuyPrice = getEffectivePrice(priceData.buy, 'buy');
                             return (
                                 <div key={prod.id} className="bg-gray-900 p-4 rounded-lg border border-gray-800 flex justify-between items-center">
-                                    <div><h3 className="font-bold text-gray-200">{prod.name}</h3><div className="text-xs text-gray-500 mt-1 flex gap-2"><span className="bg-gray-800 px-1 rounded text-gray-400">Bag: {owned} {prod.label}</span></div></div>
+                                    <div><h3 className="font-bold text-gray-200">{prod.name}</h3><div className="text-xs text-gray-500 mt-1 flex gap-2"><span className={`px-1 rounded ${owned > 0 ? 'bg-green-900/30 text-green-400 font-bold' : 'bg-gray-800 text-gray-400'}`}>Bag: {owned} {prod.label}</span></div></div>
                                     <div className="text-right">
                                         <div className="text-lg font-mono text-indigo-400 mb-1">{formatMoney(effectiveBuyPrice)}</div>
                                         <div className="text-[10px] text-gray-600 mb-1">per {prod.label}</div>
