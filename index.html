@@ -35,25 +35,14 @@
             return <i className={`fa-solid ${name} ${className}`} style={style}></i>;
         };
 
-        // Icons
-        const MapPin = (p) => <Icon name="fa-map-marker-alt" {...p} />;
-        const Users = (p) => <Icon name="fa-users" {...p} />;
-        const Home = (p) => <Icon name="fa-home" {...p} />;
-        const DollarSign = (p) => <Icon name="fa-sterling-sign" {...p} />;
-        const TrendingUp = (p) => <Icon name="fa-chart-line" {...p} />;
-        const Briefcase = (p) => <Icon name="fa-briefcase" {...p} />;
-        const Navigation = (p) => <Icon name="fa-location-arrow" {...p} />;
-        const Bus = (p) => <Icon name="fa-bus" {...p} />;
-        const Train = (p) => <Icon name="fa-train" {...p} />;
-        const Car = (p) => <Icon name="fa-car" {...p} />; 
-        const Eye = (p) => <Icon name="fa-eye" {...p} />;
-        const Mask = (p) => <Icon name="fa-mask" {...p} />;
-        const Mobile = (p) => <Icon name="fa-mobile-screen" {...p} />;
-        const Clock = (p) => <Icon name="fa-clock" {...p} />;
-        const ShieldAlert = (p) => <Icon name="fa-shield-halved" {...p} />;
-        const Skull = (p) => <Icon name="fa-skull" {...p} />;
-        const Package = (p) => <Icon name="fa-box" {...p} />;
-        const Sprout = (p) => <Icon name="fa-seedling" {...p} />;
+        const Tooltip = ({ text, children }) => (
+            <span className="relative group inline-block">
+                {children}
+                <span className="absolute opacity-0 group-hover:opacity-100 transition pointer-events-none -top-7 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-[10px] px-2 py-1 rounded border border-gray-700 whitespace-nowrap z-50">
+                    {text}
+                </span>
+            </span>
+        );
         const AlertTriangle = (p) => <Icon name="fa-triangle-exclamation" {...p} />;
         const ArrowRightCircle = (p) => <Icon name="fa-circle-arrow-right" {...p} />;
         const RotateCcw = (p) => <Icon name="fa-rotate-left" {...p} />;
@@ -88,6 +77,21 @@
         const Ban = (p) => <Icon name="fa-ban" {...p} />;
         const Trash = (p) => <Icon name="fa-trash" {...p} />;
         const Gift = (p) => <Icon name="fa-gift" {...p} />;
+        const Eye = (p) => <Icon name="fa-eye" {...p} />;
+        const MapPin = (p) => <Icon name="fa-location-dot" {...p} />;
+        const Train = (p) => <Icon name="fa-train" {...p} />;
+        const Bus = (p) => <Icon name="fa-bus" {...p} />;
+        const Car = (p) => <Icon name="fa-car" {...p} />;
+        const Navigation = (p) => <Icon name="fa-compass" {...p} />;
+        const Mask = (p) => <Icon name="fa-mask" {...p} />;
+        const Briefcase = (p) => <Icon name="fa-briefcase" {...p} />;
+        const Clock = (p) => <Icon name="fa-clock" {...p} />;
+        const DollarSign = (p) => <Icon name="fa-dollar-sign" {...p} />;
+        const Package = (p) => <Icon name="fa-box" {...p} />;
+        const Sprout = (p) => <Icon name="fa-seedling" {...p} />;
+        const Home = (p) => <Icon name="fa-house" {...p} />;
+        const Mobile = (p) => <Icon name="fa-mobile-screen" {...p} />;
+        const Skull = (p) => <Icon name="fa-skull" {...p} />;
 
         const LOCATIONS = [
             { id: 'lon', name: 'London (The Ends)', type: 'city', volatility: 0.1, distance: 0, contact: { name: 'Prestige Car Wash', fee: 0.25, time: 2, desc: "Fast & Expensive" } },
@@ -140,6 +144,56 @@
                     { label: "Buy 5kg for £500", style: "green", action: 'buy_cheap_coke', desc: "Insane price. 10% Chance it's cut with brick dust (Lose Cash)." },
                     { label: "Pass", style: "gray", action: 'ignore', desc: "Save cash." }
                 ]
+            },
+            {
+                id: 'the_intercept',
+                title: "THE INTERCEPT",
+                message: "A nervous uni student approaches you. He accidentally bought a bulk package of \"Pre-Workout\" online that turned out to be pure amphetamine. He's scared and wants to dump it for £100.",
+                image: "deal.png",
+                options: [
+                    { label: "Take the deal", style: "green", action: 'intercept_accept', desc: "Get 1kg Speed (£1,500 value). 10% chance it's washing powder (lose £100)." },
+                    { label: "Not my problem, fam", style: "gray", action: 'ignore', desc: "No effect." }
+                ]
+            },
+            {
+                id: 'the_drought',
+                title: "THE DROUGHT",
+                message: "A contact in the countryside says their town is dry. No supply anywhere. They need a runner to bring a package tonight.\n\nTrain ticket: £50.",
+                image: "train.png",
+                options: [
+                    { label: "Do the run", style: "green", action: 'drought_run', desc: "Triple market prices for all sales (5 days). 25% chance Transport Police stops you (lose all inventory)." },
+                    { label: "Stay local", style: "gray", action: 'ignore', desc: "No effect." }
+                ]
+            },
+            {
+                id: 'the_feature',
+                title: "THE FEATURE",
+                message: "An upcoming Drill Rapper from a rival block DMs you. He wants to squash the beef and have you cameo in his music video to show \"unity.\"\n\nNeeds £200 for the cameraman.",
+                image: "deal.png",
+                options: [
+                    { label: "Join the shoot", style: "green", action: 'feature_join', desc: "2x sales speed for 7 days. 30% chance it's a setup (get jumped, -50% health)." },
+                    { label: "Block him", style: "gray", action: 'ignore', desc: "No effect." }
+                ]
+            },
+            {
+                id: 'the_insider',
+                title: "THE \"INSIDER\" INFO",
+                message: "Your cousin who \"works in finance\" (scams people on Telegram) says a specific crypto coin is about to pump. He needs a £5,000 investment from you to boost the liquidity.",
+                image: "deal.png",
+                options: [
+                    { label: "Send the Ps", style: "green", action: 'insider_invest', desc: "Returns £100k in 24 hours. 40% chance it's a rug pull (lose the £5k)." },
+                    { label: "Cash is king", style: "gray", action: 'ignore', desc: "No effect." }
+                ]
+            },
+            {
+                id: 'grow_house_fire',
+                title: "THE GROW HOUSE FIRE",
+                message: "You walk past a house and smell smoke and distinct herbal fumes. The local growers wired the electricity wrong and fled. The house is burning, but the product is near the door.",
+                image: "growhouse.png",
+                options: [
+                    { label: "Run in and grab the plants", style: "green", action: 'fire_grab', desc: "Get 5lbs High-Grade Weed. 30% smoke inhalation (-20 health) or 10% death risk." },
+                    { label: "Call the fire brigade", style: "gray", action: 'ignore', desc: "No effect." }
+                ]
             }
         ];
 
@@ -159,7 +213,8 @@
         const CREW_CONFIG = {
             roadman: { label: 'Exp. Roadman', recruitCost: 500, dailyWage: 300, riskMod: 0, desc: "Pro. Expensive. Reliable." },
             coerced: { label: 'Coerced Youth', recruitCost: 0, dailyWage: 100, riskMod: 3, desc: "Standard risk." },
-            blackmailed: { label: 'Blackmailed Youth', recruitCost: 0, dailyWage: 15, riskMod: 5, desc: "Cheap. High Risk (+5%)." }
+            blackmailed: { label: 'Blackmailed Youth', recruitCost: 0, dailyWage: 15, riskMod: 5, desc: "Cheap. High Risk (+5%)." },
+            loyal: { label: 'Loyal Worker', recruitCost: 0, dailyWage: 0, riskMod: 1, desc: "Northampton connection. Low Risk." }
         };
 
         const HEAT_ACTIONS = [
@@ -173,6 +228,9 @@
             { id: 'gym', name: 'Gym', time: 2, cost: 10, stress: -10, health: 2, strength: 3, intel: 0, icon: Dumbbell, desc: "Train (+Str)" },
             { id: 'study', name: 'Study', time: 3, cost: 0, stress: 5, health: 0, strength: 0, intel: 2, icon: BookOpen, desc: "Learn (+Int)" },
             { id: 'eat', name: 'Nandos', time: 1, cost: 15, stress: -5, health: 10, strength: 0, intel: 0, icon: Utensils, desc: "Eat (+Health)" },
+            { id: 'chicken', name: 'Chicken Shop', time: 2, cost: 15, stress: -10, health: 15, strength: 0, intel: 0, icon: ShoppingBag, desc: "Grab Food (+Health)" },
+            { id: 'studio', name: 'Day in Studio', time: 24, cost: 0, stress: -30, health: 5, strength: 0, intel: 3, icon: PlayCircle, desc: "Create (+Intel, -Stress)" },
+            { id: 'laylow', name: 'Lay Low', time: 72, cost: 0, stress: 20, health: -5, strength: 0, intel: 0, icon: Mask, desc: "Hide out (Pause Heat 72h)" },
             { id: 'sleep_trap', name: 'Sleep at Trap', time: 8, cost: 0, stress: 0, health: 0, strength: 0, intel: 0, icon: Home, desc: "Pass time (8h)" },
             { id: 'hotel', name: 'Hotel', time: 8, cost: 80, stress: -100, health: 20, strength: 0, intel: 0, icon: Bed, desc: "Rest (++Health)" }
         ];
@@ -259,6 +317,36 @@
             const [activeTab, setActiveTab] = useState('market'); 
             const [modal, setModal] = useState(null); 
             const [logs, setLogs] = useState([]);
+            const [showStats, setShowStats] = useState(false);
+            const [showBackpack, setShowBackpack] = useState(false);
+            const [showHouse, setShowHouse] = useState(false);
+            const [expandedProducts, setExpandedProducts] = useState({});
+            const [tutorialStep, setTutorialStep] = useState(0);
+            const [showTutorial, setShowTutorial] = useState(false);
+            const [launderAmount, setLaunderAmount] = useState('');
+            const [showUpdateNotice, setShowUpdateNotice] = useState(false);
+
+            // Event Management State
+            const [customEvents, setCustomEvents] = useState(LONDON_EVENTS);
+            const [editingEventId, setEditingEventId] = useState(null);
+            const [showEventEditor, setShowEventEditor] = useState(false);
+            const [editingEventData, setEditingEventData] = useState(null);
+
+            // Skill Tree State
+            const [skills, setSkills] = useState({
+                operations: { haggler: 0, chemist: 0, gangLeader: 0, equipment: 0, offshore: false },
+                logistics: { traffic: 0, neighborhood: 0, mechanic: 0, routeMaster: 0, heatDodger: 0, mondeo: false },
+                network: { eyetest: 0, retainer: 0, cleaner: 0, accountant: 0, coverStory: 0, northampton: false, senator: false },
+                intelligence: { safeHouse: 0, witnessControl: 0, fixers: 0, insurance: false }
+            });
+            const [skillInvestment, setSkillInvestment] = useState({
+                operations: 0,
+                logistics: 0,
+                network: 0,
+                intelligence: 0
+            });
+            const [gameOverData, setGameOverData] = useState(null); // Stores cash/crypto when game over occurs
+            const [fallGuyUsed, setFallGuyUsed] = useState(false); // Tracks if The Fall Guy has been used once
 
             // Computed values defined early to prevent reference errors
             const localOps = Object.entries(operations).filter(([_, op]) => op.locationId === location.id);
@@ -274,7 +362,9 @@
                     const type = op.crewType || 'coerced'; 
                     total += (CREW_CONFIG[type]?.dailyWage || 0);
                 });
-                return total;
+                // Gang Leader: -1% total wages per level
+                const wageModifier = 1 - (skills.operations.gangLeader * 0.01);
+                return Math.floor(total * Math.max(0.5, wageModifier));
             };
 
             const currentDailyExpenses = calculateDailyWages();
@@ -284,7 +374,19 @@
                 const save = localStorage.getItem('countyLinesSave_v10');
                 if (save) setHasSave(true);
                 generateNewPrices();
+                // Check if update notice should be shown
+                const seenUpdate = localStorage.getItem('skillsUpdateSeen');
+                if (!seenUpdate) {
+                    setShowUpdateNotice(true);
+                }
             }, [gameKey]);
+
+            // --- Northampton Connection: Add loyal workers when skill is purchased ---
+            useEffect(() => {
+                if (gameState === 'playing' && skills.network.northampton && !crew.loyal) {
+                    setCrew(prevCrew => ({ ...prevCrew, loyal: 2 }));
+                }
+            }, [skills.network.northampton, gameState]);
 
             // --- Persistence ---
             useEffect(() => {
@@ -293,11 +395,12 @@
                     day, hour, totalHours, cash, bank, crypto, debt, stress, health, 
                     investigation, investigationPausedUntil, vehicle, actionCooldowns, nextPayDay,
                     strength, intel, inventory, location, prices, btcPrice, crew, 
-                    operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState
+                    operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState,
+                    skills, skillInvestment, fallGuyUsed, customEvents
                 };
                 localStorage.setItem('countyLinesSave_v10', JSON.stringify(saveState));
                 }
-            }, [day, hour, totalHours, cash, bank, crypto, debt, stress, health, investigation, investigationPausedUntil, vehicle, actionCooldowns, nextPayDay, strength, intel, inventory, location, prices, btcPrice, crew, operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState]);
+            }, [day, hour, totalHours, cash, bank, crypto, debt, stress, health, investigation, investigationPausedUntil, vehicle, actionCooldowns, nextPayDay, strength, intel, inventory, location, prices, btcPrice, crew, operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState, fallGuyUsed, customEvents]);
 
             const loadGame = () => {
                 const saved = localStorage.getItem('countyLinesSave_v10');
@@ -333,6 +436,10 @@
                         setProductsConfig(data.productsConfig || PRODUCTS);
                         setLogs(data.logs);
                         setDifficulty(data.difficulty);
+                        setSkills(data.skills || { operations: { haggler: 0, chemist: 0, gangLeader: 0, equipment: 0, offshore: false }, logistics: { traffic: 0, neighborhood: 0, mechanic: 0, routeMaster: 0, heatDodger: 0, mondeo: false }, network: { eyetest: 0, retainer: 0, cleaner: 0, accountant: 0, coverStory: 0, northampton: false, senator: false }, intelligence: { safeHouse: 0, witnessControl: 0, fixers: 0, insurance: false } });
+                        setSkillInvestment(data.skillInvestment || { operations: 0, logistics: 0, network: 0 });
+                        setCustomEvents(data.customEvents || LONDON_EVENTS);
+                        setFallGuyUsed(data.fallGuyUsed || false);
                         setGameState('playing');
                         
                         addLog("Game Loaded. Welcome back.");
@@ -372,16 +479,22 @@
 
             const calculateTravelDetails = (targetLoc) => {
                 const dist = Math.abs(targetLoc.distance - location.distance);
-                const trainHours = Math.max(1, Math.ceil(dist / 80) + 1); 
-                const coachHours = Math.max(2, Math.ceil(dist / 40) + 1);
+                let trainHours = Math.max(1, Math.ceil(dist / 80) + 1); 
+                let coachHours = Math.max(2, Math.ceil(dist / 40) + 1);
                 
                 // Car speed depends on vehicle
                 let carSpeedMod = vehicle ? vehicle.speedMod : 1.0;
-                const carHours = Math.max(1, Math.ceil((dist / 70) * carSpeedMod)); 
+                let carHours = Math.max(1, Math.ceil((dist / 70) * carSpeedMod)); 
                 
                 const trainCost = 20 + (dist * 0.4);
                 const coachCost = trainCost * 0.4;
                 const carCost = 10 + (dist * 0.2); // Fuel
+
+                // Route Master: reduce travel time by 1.5% per level (all modes)
+                const travelMod = Math.max(0.7, 1 - (skills.logistics.routeMaster * 0.015));
+                trainHours = Math.max(1, Math.ceil(trainHours * travelMod));
+                coachHours = Math.max(1, Math.ceil(coachHours * travelMod));
+                carHours = Math.max(1, Math.ceil(carHours * travelMod));
 
                 return {
                     dist,
@@ -448,6 +561,72 @@
                 addLog("Admin: Config applied & prices refreshed.");
             };
 
+            // --- Event Management ---
+
+            const createNewEvent = () => {
+                const newId = `event_${Date.now()}`;
+                const newEvent = {
+                    id: newId,
+                    title: "New Event",
+                    message: "Event description here",
+                    image: "deal.png",
+                    trigger: "london", // london, random, specific
+                    chance: 10, // % chance
+                    options: [
+                        { label: "Option 1", style: "green", action: 'option1', desc: "Description" },
+                        { label: "Option 2", style: "gray", action: 'ignore', desc: "Description" }
+                    ]
+                };
+                setCustomEvents(prev => [...prev, newEvent]);
+                setEditingEventId(newId);
+                setEditingEventData(JSON.parse(JSON.stringify(newEvent)));
+                setShowEventEditor(true);
+                addLog(`✓ Created new event: ${newId}`);
+            };
+
+            const updateEvent = (eventId, field, value) => {
+                setCustomEvents(prev => prev.map(evt => {
+                    if (evt.id === eventId) {
+                        return { ...evt, [field]: value };
+                    }
+                    return evt;
+                }));
+                if (editingEventData?.id === eventId) {
+                    setEditingEventData(prev => ({ ...prev, [field]: value }));
+                }
+            };
+
+            const updateEventOption = (eventId, optionIndex, field, value) => {
+                setCustomEvents(prev => prev.map(evt => {
+                    if (evt.id === eventId) {
+                        const newOptions = [...evt.options];
+                        newOptions[optionIndex] = { ...newOptions[optionIndex], [field]: value };
+                        return { ...evt, options: newOptions };
+                    }
+                    return evt;
+                }));
+            };
+
+            const deleteEvent = (eventId) => {
+                setCustomEvents(prev => prev.filter(evt => evt.id !== eventId));
+                if (editingEventId === eventId) {
+                    setEditingEventId(null);
+                    setShowEventEditor(false);
+                }
+                addLog(`✓ Deleted event: ${eventId}`);
+            };
+
+            const saveEventEdits = () => {
+                if (editingEventData) {
+                    updateEvent(editingEventData.id, 'title', editingEventData.title);
+                    updateEvent(editingEventData.id, 'message', editingEventData.message);
+                    updateEvent(editingEventData.id, 'chance', editingEventData.chance);
+                    updateEvent(editingEventData.id, 'trigger', editingEventData.trigger);
+                }
+                setShowEventEditor(false);
+                addLog(`✓ Event saved`);
+            };
+
             // --- Game Lifecycle ---
 
             const startGame = (modeKey) => {
@@ -492,6 +671,12 @@
                     message: settings.introText,
                     type: "intro"
                 });
+                // Tutorial: show on first run
+                const tutDone = localStorage.getItem('tutorialCompleted');
+                if (!tutDone) {
+                    setShowTutorial(true);
+                    setTutorialStep(1);
+                }
                 setGameState('playing');
             };
 
@@ -511,6 +696,189 @@
             const quitToMenu = () => {
                 setGameState('menu');
                 setModal(null);
+                setGameKey(k => k + 1);
+            };
+
+            // --- Skill Tree Functions ---
+            const enterSkillTree = (remainingCash, remainingCrypto) => {
+                setGameOverData({ cash: remainingCash, crypto: remainingCrypto });
+                setGameState('skilltree');
+            };
+
+            const buyGrindSkill = (category, skillId) => {
+                if (!gameOverData) return;
+                const spendable = gameOverData.cash + (gameOverData.crypto * btcPrice);
+                if (spendable < 300000) {
+                    setModal({
+                        title: "Insufficient Funds",
+                        message: "You need at least £300,000 to buy a Grind Skill.",
+                        type: "error"
+                    });
+                    return;
+                }
+
+                let toSpend = 300000;
+                let newCash = gameOverData.cash;
+                let newCrypto = gameOverData.crypto;
+
+                if (newCash >= toSpend) {
+                    newCash -= toSpend;
+                } else {
+                    const needed = toSpend - newCash;
+                    const btcNeeded = needed / btcPrice;
+                    newCrypto -= btcNeeded;
+                    newCash = 0;
+                }
+
+                setGameOverData({ cash: newCash, crypto: newCrypto });
+                
+                setSkills(prev => {
+                    const newSkills = { ...prev };
+                    // Cap skills at level 10
+                    if (newSkills[category][skillId] < 10) {
+                        newSkills[category][skillId] += 1;
+                    }
+                    return newSkills;
+                });
+
+                setSkillInvestment(prev => ({
+                    ...prev,
+                    [category]: prev[category] + 300000
+                }));
+
+                addLog(`Bought ${skillId} level for £300k`);
+            };
+
+            const buyPowerfulUpgrade = (category, upgradeId) => {
+                if (!gameOverData) return;
+                const spendable = gameOverData.cash + (gameOverData.crypto * btcPrice);
+                
+                // Determine cost and investment requirement
+                let cost = 2000000;
+                let requiredInvestment = 1500000;
+                
+                if (category === 'logistics') {
+                    cost = 1000000;
+                } else if (category === 'network') {
+                    if (upgradeId === 'northampton') {
+                        cost = 1800000;
+                    } else if (upgradeId === 'senator') {
+                        cost = 2500000;
+                        requiredInvestment = 3000000;
+                    }
+                }
+
+                // Check investment requirement
+                if (skillInvestment[category] < requiredInvestment) {
+                    setModal({
+                        title: "Locked",
+                        message: `You need to invest £${formatMoney(requiredInvestment)} in ${category} Grind Skills first. Currently: £${formatMoney(skillInvestment[category])}`,
+                        type: "error"
+                    });
+                    return;
+                }
+
+                if (spendable < cost) {
+                    setModal({
+                        title: "Insufficient Funds",
+                        message: `You need ${formatMoney(cost)} for this upgrade.`,
+                        type: "error"
+                    });
+                    return;
+                }
+
+                let newCash = gameOverData.cash;
+                let newCrypto = gameOverData.crypto;
+
+                if (newCash >= cost) {
+                    newCash -= cost;
+                } else {
+                    const needed = cost - newCash;
+                    const btcNeeded = needed / btcPrice;
+                    newCrypto -= btcNeeded;
+                    newCash = 0;
+                }
+
+                setGameOverData({ cash: newCash, crypto: newCrypto });
+
+                setSkills(prev => {
+                    const newSkills = { ...prev };
+                    newSkills[category][upgradeId] = true;
+                    return newSkills;
+                });
+
+                addLog(`Unlocked ${upgradeId}!`);
+            };
+
+            const finishSkillTree = () => {
+                // Apply remaining funds to new game
+                if (skills.operations.offshore) {
+                    setGameOverData(prev => ({
+                        ...prev,
+                        cash: prev.cash * 0.5 // Will carry forward to next game
+                    }));
+                }
+
+                // Start new game with carried-over cash/crypto
+                const settings = DIFFICULTY_SETTINGS[difficulty];
+                localStorage.removeItem('countyLinesSave_v10');
+                
+                setDay(1);
+                setHour(9);
+                setTotalHours(24 + 9);
+                
+                // Apply any retained cash from Offshore Accounts
+                let startingCash = settings.cash;
+                if (skills.operations.offshore && gameOverData) {
+                    startingCash += gameOverData.cash;
+                }
+                
+                setCash(startingCash);
+                setBank(gameOverData?.bank || 0);
+                setCrypto(gameOverData?.crypto || 0);
+                
+                setDebt(settings.debt);
+                setStress(0);
+                setHealth(100);
+                setInvestigation(0);
+                setInvestigationPausedUntil(0);
+                setActionCooldowns({});
+                setNextPayDay(7);
+                
+                // Apply vehicle bonus from Mondeo Man
+                if (skills.logistics.mondeo) {
+                    setVehicle(VEHICLES.mondeo);
+                }
+
+                setStrength(10);
+                setIntel(10);
+                
+                const initialInv = {};
+                productsConfig.forEach(p => initialInv[p.id] = 0);
+                setInventory(initialInv);
+                
+                setLocation(LOCATIONS[0]);
+                setCrew(
+                    skills.network.northampton 
+                    ? { roadman: 0, coerced: 0, blackmailed: 0, loyal: 2 }
+                    : { roadman: 0, coerced: 0, blackmailed: 0 }
+                );
+                setOperations({});
+                setLaundering([]);
+                setBannedLocations({});
+                setEventQueue([]);
+                setTransferAmounts({});
+                setActiveTab('market');
+                setGameOverData(null);
+                setModal({
+                    title: settings.introTitle,
+                    message: settings.introText,
+                    type: "intro"
+                });
+                setLogs([`Game started with bonuses active!`]);
+                generateNewPrices(productsConfig);
+                
+                setGameState('playing');
                 setGameKey(k => k + 1);
             };
 
@@ -546,6 +914,18 @@
                          invGrowth = activeDuration * (mode === 'car' ? 2 : 1);
                     }
 
+                    // Legal Retainer: -2% investigation growth per level
+                    invGrowth *= (1 - (skills.network.retainer * 0.02));
+                    // Witness Control: -1% heat gain per level
+                    invGrowth *= (1 - (skills.intelligence.witnessControl * 0.01));
+                    // Heat Dodger: -1% heat gain while traveling per level
+                    if (mode !== 'wait') {
+                        invGrowth *= (1 - (skills.logistics.heatDodger * 0.01));
+                    }
+                    // Cover Story: -0.5% heat gain while laundering per level
+                    if (laundering.length > 0) {
+                        invGrowth *= (1 - (skills.network.coverStory * 0.005));
+                    }
                     setInvestigation(inv => Math.min(1000, inv + invGrowth));
                 }
 
@@ -575,13 +955,53 @@
 
                 // Check Investigation Game Over
                 if (investigation >= 1000) {
-                    setModal({
-                        title: "BUSTED",
-                        message: "The net closed in. Armed police raided your spot.\n\nYou are serving 12 years for conspiracy to supply.\n\nGAME OVER.",
-                        type: 'gameover',
-                        image: "prison.png"
-                    });
-                    localStorage.removeItem('countyLinesSave_v10');
+                    // Check if The Fall Guy skill is active and hasn't been used yet
+                    if (skills.network.senator && !fallGuyUsed) {
+                        // Trigger Fall Guy - restart game with special conditions
+                        setFallGuyUsed(true);
+                        
+                        // Reset game state while keeping all money and some stats
+                        setDay(1);
+                        setHour(9);
+                        setTotalHours(24 + 9);
+                        setInvestigation(250); // Start at 25% investigation
+                        setInvestigationPausedUntil(0);
+                        setDebt(0);
+                        setStress(0);
+                        setHealth(100);
+                        
+                        // Clear all operations/lines
+                        setOperations({});
+                        setLaundering([]);
+                        setBannedLocations({});
+                        
+                        // Clear gear/inventory but keep money
+                        const initialInv = {};
+                        productsConfig.forEach(p => initialInv[p.id] = 0);
+                        setInventory(initialInv);
+                        setVehicle(null);
+                        
+                        // Reset crew
+                        setCrew({ roadman: 0, coerced: 0, blackmailed: 0 });
+                        
+                        // Show modal about the restart
+                        setModal({
+                            title: "THE FALL GUY ACTIVATED",
+                            message: "Your connection came through.\n\nYou're back on the streets with your stash intact, but all your lines are gone.\n\nStay sharp. You won't get another chance.",
+                            type: "intro"
+                        });
+                        
+                        addLog("The Fall Guy: Game restarted! Investigation reset to 25%.");
+                    } else {
+                        // Normal game over
+                        setModal({
+                            title: "BUSTED",
+                            message: "The net closed in. Armed police raided your spot.\n\nYou are serving 12 years for conspiracy to supply.\n\nGAME OVER.",
+                            type: 'gameover',
+                            image: "prison.png"
+                        });
+                        localStorage.removeItem('countyLinesSave_v10');
+                    }
                 }
             };
 
@@ -620,7 +1040,9 @@
                         if (!op.locationId) return;
                         const locPrices = prices[op.locationId] || {}; 
 
-                        const processingCapacity = opType.processingSpeed * hoursPassed; 
+                        // Better Equipment: +2% processing speed per level
+                        const processingMod = 1 + (skills.operations.equipment * 0.02);
+                        const processingCapacity = opType.processingSpeed * processingMod * hoursPassed; 
                         
                         productsConfig.forEach(prod => {
                             const prodId = prod.id;
@@ -634,7 +1056,9 @@
                             }
                         });
 
-                        const expectedSales = opType.speed * hoursPassed; 
+                        // Better Equipment: +2% sales speed per level
+                        const salesMod = 1 + (skills.operations.equipment * 0.02);
+                        const expectedSales = (opType.speed * salesMod) * hoursPassed; 
                         const guaranteedSales = Math.floor(expectedSales);
                         const extraSaleChance = expectedSales - guaranteedSales;
                         
@@ -644,6 +1068,7 @@
                         productsConfig.forEach(prod => {
                             const prodId = prod.id;
                             const streetPrice = locPrices[prodId]?.sell || 0;
+                            const effectiveSellPrice = getEffectivePrice(streetPrice, 'sell');
                             
                             const demand = prod.demand || 1;
                             const baseSales = opType.speed * hoursPassed * demand;
@@ -651,7 +1076,7 @@
 
                             if (actualSales >= 1 && op.stock[prodId] >= 1 && streetPrice > 0) {
                                 const amountToSell = Math.min(actualSales, Math.floor(op.stock[prodId]));
-                                const revenue = amountToSell * streetPrice;
+                                const revenue = amountToSell * effectiveSellPrice;
                                 
                                 op.stock[prodId] -= amountToSell;
                                 if(!op.sold[prodId]) op.sold[prodId] = 0;
@@ -718,7 +1143,13 @@
                 
                 Object.keys(operations).forEach(opId => {
                     const op = operations[opId];
-                    const raidChance = op.risk / 4; 
+                    let raidChance = op.risk / 4; 
+                    
+                    // Apply skill modifiers
+                    // Neighbourhood Watch: -2% raid risk per level
+                    raidChance *= (1 - (skills.logistics.neighborhood * 0.02));
+                    // The Fall Guy: Second chance on investigation
+                    if (skills.network.senator && fallGuyUsed) raidChance = 0; // Still get immunity after first use
                     
                     if (Math.random() * 100 < raidChance) {
                         let stockLost = 0;
@@ -752,10 +1183,28 @@
                     return nextOps;
                 });
 
-                const interestEarned = Math.floor(bank * 0.01 * daysPassed);
+                // Safe House: chance to pause investigation for 1 day per level
+                if (skills.intelligence.safeHouse > 0) {
+                    for (let i = 0; i < daysPassed; i++) {
+                        const pauseChance = skills.intelligence.safeHouse; // 1% per level
+                        if (Math.random() * 100 < pauseChance) {
+                            setInvestigationPausedUntil(totalHours + 24); // Pause for 24 hours
+                            addLog(`🏠 Safe House: Investigation paused for 1 day!`);
+                        }
+                    }
+                }
+
+                // Balance: reduce bank interest to 0.01% per day
+                const interestEarned = Math.floor(bank * 0.0001 * daysPassed);
                 if (interestEarned > 0) {
                     setBank(b => b + interestEarned);
                     addLog(`🏦 Bank Interest: +${formatMoney(interestEarned)}`);
+                }
+
+                // Fixers Network: auto-reduce investigation by 1 point per level per day
+                if (skills.intelligence.fixers > 0) {
+                    const reduceBy = skills.intelligence.fixers * daysPassed; // 1-10 per day
+                    setInvestigation(inv => Math.max(0, inv - reduceBy));
                 }
 
                 if (debt > 0) {
@@ -812,6 +1261,82 @@
                             setInventory(inv => ({ ...inv, 'p2': (inv['p2'] || 0) + 5 })); // 5kg Coke
                             addLog("Deal done. +5kg Coke secured.");
                         }
+                    }
+                } else if (choice === 'intercept_accept') {
+                    if (cash < 100) {
+                        addLog("Couldn't afford the £100.");
+                    } else {
+                        setCash(c => c - 100);
+                        if (Math.random() < 0.1) {
+                            addLog("SCAMMED. That was just washing powder.");
+                        } else {
+                            setInventory(inv => ({ ...inv, 'p3': (inv['p3'] || 0) + 1 })); // 1kg Speed
+                            addLog("The Intercept scored. +1kg Speed (£1.5k value).");
+                        }
+                    }
+                } else if (choice === 'drought_run') {
+                    if (cash < 50) {
+                        addLog("Couldn't afford the train ticket.");
+                    } else {
+                        setCash(c => c - 50);
+                        if (Math.random() < 0.25) {
+                            const newInv = {};
+                            productsConfig.forEach(p => newInv[p.id] = 0);
+                            setInventory(newInv);
+                            addLog("BUSTED. Transport Police stopped the train. Lost all inventory.");
+                        } else {
+                            addLog("Made the run. Countryside is eating. +300% sales prices (5 days).");
+                            // 5 days = 120 hours boost
+                            localStorage.setItem('droughtBoostEnd', (totalHours + 120).toString());
+                        }
+                    }
+                } else if (choice === 'feature_join') {
+                    if (cash < 200) {
+                        addLog("Couldn't afford the cameraman fee.");
+                    } else {
+                        setCash(c => c - 200);
+                        if (Math.random() < 0.3) {
+                            const healthLoss = Math.floor(health * 0.5);
+                            setHealth(h => Math.max(0, h - healthLoss));
+                            addLog("It was a setup. Got jumped on camera. -50% Health.");
+                        } else {
+                            addLog("Cameo was fire. Clout up. +2x sales speed (7 days).");
+                            // 7 days = 168 hours boost
+                            localStorage.setItem('featureBoostEnd', (totalHours + 168).toString());
+                        }
+                    }
+                } else if (choice === 'insider_invest') {
+                    if (cash < 5000) {
+                        addLog("Couldn't afford the £5k investment.");
+                    } else {
+                        setCash(c => c - 5000);
+                        if (Math.random() < 0.4) {
+                            addLog("RUG PULL. Your cousin ghosted. Lost the £5k.");
+                        } else {
+                            setCash(c => c + 100000);
+                            addLog("BLESSED. Coin pumped hard. +£100k profit (returned in 24h).");
+                        }
+                    }
+                } else if (choice === 'fire_grab') {
+                    if (Math.random() < 0.1) {
+                        // 10% death
+                        setModal({
+                            title: "TRAPPED",
+                            message: "The floor collapsed. You couldn't escape.\n\nGAME OVER.",
+                            type: 'gameover',
+                            image: "betrayed.png"
+                        });
+                        localStorage.removeItem('countyLinesSave_v10');
+                        return;
+                    } else if (Math.random() < 0.3) {
+                        // 30% smoke inhalation (of the remaining 90%)
+                        setHealth(h => Math.max(0, h - 20));
+                        addLog("Grabbed 5lbs High-Grade Weed. Smoke inhalation. -20 Health.");
+                        setInventory(inv => ({ ...inv, 'p1': (inv['p1'] || 0) + 5 }));
+                    } else {
+                        // 60% clean success
+                        setInventory(inv => ({ ...inv, 'p1': (inv['p1'] || 0) + 5 }));
+                        addLog("Grabbed 5lbs High-Grade Weed before it burned.");
                     }
                 }
 
@@ -904,7 +1429,9 @@
             const handlePulledOverChoice = (choice) => {
                 if (choice === 'run') {
                     // Escape chance depends on vehicle
-                    const escChance = vehicle ? vehicle.escapeChance : 0.2; 
+                    let escChance = vehicle ? vehicle.escapeChance : 0.2; 
+                    // Mechanic: +2% escape chance per level (cap at 95%)
+                    escChance = Math.min(0.95, escChance + (skills.logistics.mechanic * 0.02));
                     if (Math.random() < escChance) {
                         setInvestigation(inv => Math.min(1000, inv + 50));
                         addLog(`ESCAPED! You floored it. The ${vehicle.name} left them in the dust. (+50 Heat)`);
@@ -992,6 +1519,11 @@
                 setHealth(newHealth);
                 setStrength(s => Math.min(100, s + action.strength));
                 setIntel(i => Math.min(100, i + action.intel));
+                
+                // Handle Lay Low investigation pause
+                if (action.id === 'laylow') {
+                    setInvestigationPausedUntil(totalHours + action.time);
+                }
                 
                 if (newHealth <= 0) {
                     setModal({ title: "HOSPITALIZED", message: "You passed out. Woke up in A&E.\nLost 24 hours.", type: 'error', image: "wasted.png" });
@@ -1083,7 +1615,9 @@
                 }
 
                 // Pulled Over Check (Car Only)
-                if (mode === 'car' && Math.random() < 0.15) { // 15% chance
+                // Traffic School: -2% pull over risk per level
+                const pullOverChance = Math.max(0, 0.15 - (skills.logistics.traffic * 0.02));
+                if (mode === 'car' && Math.random() < pullOverChance) {
                      setEventQueue(prev => [...prev, { type: 'pulled_over' }]);
                      // Don't execute travel yet
                      return;
@@ -1091,8 +1625,11 @@
 
                 // NEW: Random London Opportunity (5% chance)
                 if (targetLocation.id === 'lon' && Math.random() < 0.05) {
-                    const randomEvent = LONDON_EVENTS[Math.floor(Math.random() * LONDON_EVENTS.length)];
-                    setEventQueue(prev => [...prev, { type: 'london_opportunity', data: randomEvent }]);
+                    const londonEvents = customEvents.filter(e => !e.trigger || e.trigger === 'london');
+                    if (londonEvents.length > 0) {
+                        const randomEvent = londonEvents[Math.floor(Math.random() * londonEvents.length)];
+                        setEventQueue(prev => [...prev, { type: 'london_opportunity', data: randomEvent }]);
+                    }
                     // Note: Travel cost/time is applied below, then event shows.
                 }
 
@@ -1122,16 +1659,30 @@
                 else setActiveTab('empire'); 
             };
 
+            // Helper: Get effective price with skill bonuses
+            const getEffectivePrice = (basePrice, priceType) => {
+                let multiplier = 1.0;
+                if (priceType === 'buy') {
+                    // Haggler: -1% buy price per level
+                    multiplier *= (1 - (skills.operations.haggler * 0.01));
+                } else if (priceType === 'sell') {
+                    // Chemist: +1% sell price per level
+                    multiplier *= (1 + (skills.operations.chemist * 0.01));
+                }
+                return Math.floor(basePrice * multiplier);
+            };
+
             const buyProduct = (prodId) => {
                 if (modal || eventQueue.length > 0) return;
                 if (location.id !== 'lon') return;
                 const priceData = prices[location.id]?.[prodId];
                 if (!priceData) return;
-                const maxBuy = Math.floor(cash / priceData.buy);
+                const effectiveBuyPrice = getEffectivePrice(priceData.buy, 'buy');
+                const maxBuy = Math.floor(cash / effectiveBuyPrice);
                 if (maxBuy <= 0) return;
                 let timeCost = 0; // Updated to 0 hours
                 const amount = 1; 
-                setCash(c => c - (priceData.buy * amount));
+                setCash(c => c - (effectiveBuyPrice * amount));
                 setInventory(inv => ({ ...inv, [prodId]: (inv[prodId] || 0) + amount }));
                 passTime(timeCost);
             };
@@ -1152,6 +1703,20 @@
                     return;
                 }
                 
+                // Eye Test: -1.5% snitch risk per level
+                const snitchChance = Math.max(0, (config.riskMod / 100) - (skills.network.eyetest * 0.015));
+                
+                // Check if crew member is a snitch
+                if (Math.random() < snitchChance) {
+                    setModal({
+                        title: "SNITCH DETECTED",
+                        message: `${config.label} was a fed informant. Aborted recruitment.`,
+                        type: "error"
+                    });
+                    passTime(0.5);
+                    return;
+                }
+                
                 setCash(c => c - config.recruitCost);
                 setCrew(prev => ({ ...prev, [type]: (prev[type] || 0) + 1 }));
                 addLog(`Recruited: ${config.label}.`);
@@ -1164,10 +1729,11 @@
                 if (location.type === 'city') return;
                 
                 let selectedCrewType = null;
-                // Priority: Roadman > Coerced > Blackmailed
+                // Priority: Roadman > Coerced > Blackmailed > Loyal
                 if (crew.roadman > 0) selectedCrewType = 'roadman';
                 else if (crew.coerced > 0) selectedCrewType = 'coerced';
                 else if (crew.blackmailed > 0) selectedCrewType = 'blackmailed';
+                else if (crew.loyal > 0) selectedCrewType = 'loyal';
 
                 if (!selectedCrewType) {
                     setModal({ title: "No Staff", message: "Recruit a runner first.", type: 'error' });
@@ -1368,14 +1934,18 @@
 
                 const contact = location.contact;
                 const fee = Math.ceil(amount * contact.fee);
-                const cleanAmount = amount - fee;
+                let cleanAmount = amount - fee;
+                // Accountant: +2% payout per level
+                cleanAmount = Math.floor(cleanAmount * (1 + (skills.network.accountant * 0.02)));
 
                 setCash(c => c - amount);
                 setLaundering(prev => [
                     ...prev, 
-                    { id: Date.now(), location: location.name, amount: amount, payout: cleanAmount, hoursLeft: contact.time }
+                    // Cleaner: -5% time per level
+                    { id: Date.now(), location: location.name, amount: amount, payout: cleanAmount, hoursLeft: Math.max(1, Math.ceil(contact.time * Math.max(0.5, (1 - (skills.network.cleaner * 0.05))))) }
                 ]);
                 addLog(`Laundering ${formatMoney(amount)}.`);
+                setLaunderAmount(''); // Clear input after laundering
                 passTime(1);
             };
 
@@ -1457,9 +2027,451 @@
                 );
             }
 
+            // --- VIEW: SKILL TREE ---
+            if (gameState === 'skilltree') {
+                const spendable = gameOverData.cash + (gameOverData.crypto * btcPrice);
+                const formatSpendable = () => `£${Math.floor(gameOverData.cash)} + ${gameOverData.crypto.toFixed(4)} BTC (£${Math.floor(spendable)})`;
+                
+                return (
+                    <div className="bg-gray-950 min-h-screen text-gray-100 font-sans flex flex-col p-6 overflow-auto">
+                        <h1 className="text-4xl font-black text-indigo-500 mb-2 uppercase tracking-tighter">SKILL TREE</h1>
+                        <p className="text-gray-400 text-sm mb-6">Invest your money in upgrades to improve your next run.</p>
+                        
+                        {/* Available Funds */}
+                        <div className="bg-gray-900 border border-gray-800 p-4 rounded-lg mb-6">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <div className="text-gray-400 text-xs mb-1">AVAILABLE FUNDS</div>
+                                    <div className="text-2xl font-bold text-green-400">{formatSpendable()}</div>
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-gray-400 text-xs mb-1">CASH</div>
+                                    <div className="text-lg font-mono text-white">{formatMoney(gameOverData.cash)}</div>
+                                    <div className="text-gray-400 text-xs mt-2 mb-1">BTC</div>
+                                    <div className="text-lg font-mono text-orange-400">{gameOverData.crypto.toFixed(4)}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Skills Grid */}
+                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+                            
+                            {/* OPERATIONS */}
+                            <div className="bg-gray-900 border border-indigo-900/50 rounded-lg p-6">
+                                <h2 className="text-xl font-bold text-indigo-400 mb-4 flex items-center gap-2">💼 Operations</h2>
+                                <p className="text-xs text-gray-400 mb-4">Focus: Margins, Money, and Banking.</p>
+                                
+                                {/* Sweet Talker */}
+                                <div className="bg-gray-950 p-3 rounded mb-3 border border-gray-800">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">Sweet Talker</div>
+                                            <div className="text-xs text-gray-500">-1% Buy Price per level</div>
+                                        </div>
+                                        <div className="text-xs bg-indigo-900/30 text-indigo-300 px-2 py-1 rounded">Lvl {skills.operations.haggler}</div>
+                                    </div>
+                                    <button onClick={() => buyGrindSkill('operations', 'haggler')} disabled={spendable < 300000 || skills.operations.haggler >= 10} className="w-full bg-indigo-900/30 hover:bg-indigo-900/50 disabled:opacity-30 text-indigo-300 text-xs py-2 rounded border border-indigo-900/50 transition">{skills.operations.haggler >= 10 ? 'Max Level Reached' : 'Buy Level (+£300k)'}</button>
+                                </div>
+
+                                {/* Pressure the Trap */}
+                                <div className="bg-gray-950 p-3 rounded mb-3 border border-gray-800">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">Pressure the Trap</div>
+                                            <div className="text-xs text-gray-500">+1% Sell Price per level</div>
+                                        </div>
+                                        <div className="text-xs bg-indigo-900/30 text-indigo-300 px-2 py-1 rounded">Lvl {skills.operations.chemist}</div>
+                                    </div>
+                                    <button onClick={() => buyGrindSkill('operations', 'chemist')} disabled={spendable < 300000 || skills.operations.chemist >= 10} className="w-full bg-indigo-900/30 hover:bg-indigo-900/50 disabled:opacity-30 text-indigo-300 text-xs py-2 rounded border border-indigo-900/50 transition">{skills.operations.chemist >= 10 ? 'Max Level Reached' : 'Buy Level (+£300k)'}</button>
+                                </div>
+
+                                {/* Gang Leader */}
+                                <div className="bg-gray-950 p-3 rounded mb-3 border border-gray-800">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">Gang Leader</div>
+                                            <div className="text-xs text-gray-500">-1% Crew Wages per level</div>
+                                        </div>
+                                        <div className="text-xs bg-indigo-900/30 text-indigo-300 px-2 py-1 rounded">Lvl {skills.operations.gangLeader}</div>
+                                    </div>
+                                    <button onClick={() => buyGrindSkill('operations', 'gangLeader')} disabled={spendable < 300000 || skills.operations.gangLeader >= 10} className="w-full bg-indigo-900/30 hover:bg-indigo-900/50 disabled:opacity-30 text-indigo-300 text-xs py-2 rounded border border-indigo-900/50 transition">{skills.operations.gangLeader >= 10 ? 'Max Level Reached' : 'Buy Level (+£300k)'}</button>
+                                </div>
+
+                                {/* Better Equipment */}
+                                <div className="bg-gray-950 p-3 rounded mb-4 border border-gray-800">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">Better Equipment</div>
+                                            <div className="text-xs text-gray-500">+2% Crew Speed per level</div>
+                                        </div>
+                                        <div className="text-xs bg-indigo-900/30 text-indigo-300 px-2 py-1 rounded">Lvl {skills.operations.equipment}</div>
+                                    </div>
+                                    <button onClick={() => buyGrindSkill('operations', 'equipment')} disabled={spendable < 300000 || skills.operations.equipment >= 10} className="w-full bg-indigo-900/30 hover:bg-indigo-900/50 disabled:opacity-30 text-indigo-300 text-xs py-2 rounded border border-indigo-900/50 transition">{skills.operations.equipment >= 10 ? 'Max Level Reached' : 'Buy Level (+£300k)'}</button>
+                                </div>
+
+                                {/* Investment Progress */}
+                                <div className="bg-gray-950 p-2 rounded mb-4 border border-gray-800 text-center">
+                                    <div className="text-xs text-gray-500 mb-1">Grind Investment</div>
+                                    <div className="text-sm font-bold text-white">{formatMoney(skillInvestment.operations)} / £1,500,000</div>
+                                    <div className="w-full bg-gray-900 rounded h-2 mt-2 overflow-hidden">
+                                        <div className="bg-indigo-600 h-full" style={{ width: `${Math.min(100, (skillInvestment.operations / 1500000) * 100)}%` }}></div>
+                                    </div>
+                                </div>
+
+                                {/* Crooked Accountant */}
+                                <div className={`p-3 rounded border-2 ${skillInvestment.operations >= 1500000 ? 'bg-indigo-950/30 border-indigo-600' : 'bg-gray-950 border-gray-700'}`}>
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">🔒 Crooked Accountant</div>
+                                            <div className="text-xs text-gray-500 mb-2">Keep 50% cash on Game Over</div>
+                                            <div className="text-[10px] text-gray-600">Req: £1.5m Ops investment</div>
+                                        </div>
+                                        {skills.operations.offshore && <div className="text-xs bg-green-900/50 text-green-300 px-2 py-1 rounded">✓ OWNED</div>}
+                                    </div>
+                                    <button onClick={() => buyPowerfulUpgrade('operations', 'offshore')} disabled={skillInvestment.operations < 1500000 || spendable < 2000000 || skills.operations.offshore} className="w-full bg-indigo-900 hover:bg-indigo-800 disabled:opacity-30 disabled:bg-gray-800 text-indigo-300 text-xs py-2 rounded border border-indigo-600 transition font-bold">
+                                        {skills.operations.offshore ? 'OWNED' : 'BUY (£2,000,000)'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* LOGISTICS */}
+                            <div className="bg-gray-900 border border-yellow-900/50 rounded-lg p-6">
+                                <h2 className="text-xl font-bold text-yellow-400 mb-4 flex items-center gap-2">🚛 Logistics</h2>
+                                <p className="text-xs text-gray-400 mb-4">Focus: Transport, Evasion, Territory.</p>
+                                
+                                {/* Street Racer */}
+                                <div className="bg-gray-950 p-3 rounded mb-3 border border-gray-800">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">Street Racer</div>
+                                            <div className="text-xs text-gray-500">-2% Pull Over Risk per level</div>
+                                        </div>
+                                        <div className="text-xs bg-yellow-900/30 text-yellow-300 px-2 py-1 rounded">Lvl {skills.logistics.traffic}</div>
+                                    </div>
+                                    <button onClick={() => buyGrindSkill('logistics', 'traffic')} disabled={spendable < 300000 || skills.logistics.traffic >= 10} className="w-full bg-yellow-900/30 hover:bg-yellow-900/50 disabled:opacity-30 text-yellow-300 text-xs py-2 rounded border border-yellow-900/50 transition">{skills.logistics.traffic >= 10 ? 'Max Level Reached' : 'Buy Level (+£300k)'}</button>
+                                </div>
+
+                                {/* Local Influence */}
+                                <div className="bg-gray-950 p-3 rounded mb-3 border border-gray-800">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">Local Influence</div>
+                                            <div className="text-xs text-gray-500">-2% Raid Risk per level</div>
+                                        </div>
+                                        <div className="text-xs bg-yellow-900/30 text-yellow-300 px-2 py-1 rounded">Lvl {skills.logistics.neighborhood}</div>
+                                    </div>
+                                    <button onClick={() => buyGrindSkill('logistics', 'neighborhood')} disabled={spendable < 300000 || skills.logistics.neighborhood >= 10} className="w-full bg-yellow-900/30 hover:bg-yellow-900/50 disabled:opacity-30 text-yellow-300 text-xs py-2 rounded border border-yellow-900/50 transition">{skills.logistics.neighborhood >= 10 ? 'Max Level Reached' : 'Buy Level (+£300k)'}</button>
+                                </div>
+
+                                {/* Mechanic */}
+                                <div className="bg-gray-950 p-3 rounded mb-3 border border-gray-800">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">Mechanic</div>
+                                            <div className="text-xs text-gray-500">+2% Vehicle Escape per level</div>
+                                        </div>
+                                        <div className="text-xs bg-yellow-900/30 text-yellow-300 px-2 py-1 rounded">Lvl {skills.logistics.mechanic}</div>
+                                    </div>
+                                    <button onClick={() => buyGrindSkill('logistics', 'mechanic')} disabled={spendable < 300000 || skills.logistics.mechanic >= 10} className="w-full bg-yellow-900/30 hover:bg-yellow-900/50 disabled:opacity-30 text-yellow-300 text-xs py-2 rounded border border-yellow-900/50 transition">{skills.logistics.mechanic >= 10 ? 'Max Level Reached' : 'Buy Level (+£300k)'}</button>
+                                </div>
+
+                                {/* Route Master */}
+                                <div className="bg-gray-950 p-3 rounded mb-3 border border-gray-800">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">Route Master</div>
+                                            <div className="text-xs text-gray-500">-1.5% Travel Time per level</div>
+                                        </div>
+                                        <div className="text-xs bg-yellow-900/30 text-yellow-300 px-2 py-1 rounded">Lvl {skills.logistics.routeMaster}</div>
+                                    </div>
+                                    <button onClick={() => buyGrindSkill('logistics', 'routeMaster')} disabled={spendable < 300000 || skills.logistics.routeMaster >= 10} className="w-full bg-yellow-900/30 hover:bg-yellow-900/50 disabled:opacity-30 text-yellow-300 text-xs py-2 rounded border border-yellow-900/50 transition">{skills.logistics.routeMaster >= 10 ? 'Max Level Reached' : 'Buy Level (+£300k)'}</button>
+                                </div>
+
+                                {/* Heat Dodger */}
+                                <div className="bg-gray-950 p-3 rounded mb-4 border border-gray-800">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">Heat Dodger</div>
+                                            <div className="text-xs text-gray-500">-1% Heat on Travel per level</div>
+                                        </div>
+                                        <div className="text-xs bg-yellow-900/30 text-yellow-300 px-2 py-1 rounded">Lvl {skills.logistics.heatDodger}</div>
+                                    </div>
+                                    <button onClick={() => buyGrindSkill('logistics', 'heatDodger')} disabled={spendable < 300000 || skills.logistics.heatDodger >= 10} className="w-full bg-yellow-900/30 hover:bg-yellow-900/50 disabled:opacity-30 text-yellow-300 text-xs py-2 rounded border border-yellow-900/50 transition">{skills.logistics.heatDodger >= 10 ? 'Max Level Reached' : 'Buy Level (+£300k)'}</button>
+                                </div>
+
+                                {/* Investment Progress */}
+                                <div className="bg-gray-950 p-2 rounded mb-4 border border-gray-800 text-center">
+                                    <div className="text-xs text-gray-500 mb-1">Grind Investment</div>
+                                    <div className="text-sm font-bold text-white">{formatMoney(skillInvestment.logistics)} / £1,500,000</div>
+                                    <div className="w-full bg-gray-900 rounded h-2 mt-2 overflow-hidden">
+                                        <div className="bg-yellow-600 h-full" style={{ width: `${Math.min(100, (skillInvestment.logistics / 1500000) * 100)}%` }}></div>
+                                    </div>
+                                </div>
+
+                                {/* Grannies Gift */}
+                                <div className={`p-3 rounded border-2 ${skillInvestment.logistics >= 1500000 ? 'bg-yellow-950/30 border-yellow-600' : 'bg-gray-950 border-gray-700'}`}>
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">🔒 Grannies Gift</div>
+                                            <div className="text-xs text-gray-500 mb-2">Start with Ford Mondeo</div>
+                                            <div className="text-[10px] text-gray-600">Req: £1.5m Logistics investment</div>
+                                        </div>
+                                        {skills.logistics.mondeo && <div className="text-xs bg-green-900/50 text-green-300 px-2 py-1 rounded">✓ OWNED</div>}
+                                    </div>
+                                    <button onClick={() => buyPowerfulUpgrade('logistics', 'mondeo')} disabled={skillInvestment.logistics < 1500000 || spendable < 1000000 || skills.logistics.mondeo} className="w-full bg-yellow-900 hover:bg-yellow-800 disabled:opacity-30 disabled:bg-gray-800 text-yellow-300 text-xs py-2 rounded border border-yellow-600 transition font-bold">
+                                        {skills.logistics.mondeo ? 'OWNED' : 'BUY (£1,000,000)'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* NETWORK */}
+                            <div className="bg-gray-900 border border-cyan-900/50 rounded-lg p-6">
+                                <h2 className="text-xl font-bold text-cyan-400 mb-4 flex items-center gap-2">🤝 The Network</h2>
+                                <p className="text-xs text-gray-400 mb-4">Focus: Personnel, Legal, Influence.</p>
+                                
+                                {/* Trap Training */}
+                                <div className="bg-gray-950 p-3 rounded mb-3 border border-gray-800">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">Trap Training</div>
+                                            <div className="text-xs text-gray-500">-1.5% Raid Risk per level</div>
+                                        </div>
+                                        <div className="text-xs bg-cyan-900/30 text-cyan-300 px-2 py-1 rounded">Lvl {skills.network.eyetest}</div>
+                                    </div>
+                                    <button onClick={() => buyGrindSkill('network', 'eyetest')} disabled={spendable < 300000 || skills.network.eyetest >= 10} className="w-full bg-cyan-900/30 hover:bg-cyan-900/50 disabled:opacity-30 text-cyan-300 text-xs py-2 rounded border border-cyan-900/50 transition">{skills.network.eyetest >= 10 ? 'Max Level Reached' : 'Buy Level (+£300k)'}</button>
+                                </div>
+
+                                {/* Police Bribery */}
+                                <div className="bg-gray-950 p-3 rounded mb-3 border border-gray-800">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">Police Bribery</div>
+                                            <div className="text-xs text-gray-500">-2% Investigation Fill per level</div>
+                                        </div>
+                                        <div className="text-xs bg-cyan-900/30 text-cyan-300 px-2 py-1 rounded">Lvl {skills.network.retainer}</div>
+                                    </div>
+                                    <button onClick={() => buyGrindSkill('network', 'retainer')} disabled={spendable < 300000 || skills.network.retainer >= 10} className="w-full bg-cyan-900/30 hover:bg-cyan-900/50 disabled:opacity-30 text-cyan-300 text-xs py-2 rounded border border-cyan-900/50 transition">{skills.network.retainer >= 10 ? 'Max Level Reached' : 'Buy Level (+£300k)'}</button>
+                                </div>
+
+                                {/* Cleaner */}
+                                <div className="bg-gray-950 p-3 rounded mb-3 border border-gray-800">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">Cleaner</div>
+                                            <div className="text-xs text-gray-500">-5% Laundry Time per level</div>
+                                        </div>
+                                        <div className="text-xs bg-cyan-900/30 text-cyan-300 px-2 py-1 rounded">Lvl {skills.network.cleaner}</div>
+                                    </div>
+                                    <button onClick={() => buyGrindSkill('network', 'cleaner')} disabled={spendable < 300000 || skills.network.cleaner >= 10} className="w-full bg-cyan-900/30 hover:bg-cyan-900/50 disabled:opacity-30 text-cyan-300 text-xs py-2 rounded border border-cyan-900/50 transition">{skills.network.cleaner >= 10 ? 'Max Level Reached' : 'Buy Level (+£300k)'}</button>
+                                </div>
+
+                                {/* Accountant */}
+                                <div className="bg-gray-950 p-3 rounded mb-3 border border-gray-800">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">Accountant</div>
+                                            <div className="text-xs text-gray-500">+2% Laundry Payout per level</div>
+                                        </div>
+                                        <div className="text-xs bg-cyan-900/30 text-cyan-300 px-2 py-1 rounded">Lvl {skills.network.accountant}</div>
+                                    </div>
+                                    <button onClick={() => buyGrindSkill('network', 'accountant')} disabled={spendable < 300000 || skills.network.accountant >= 10} className="w-full bg-cyan-900/30 hover:bg-cyan-900/50 disabled:opacity-30 text-cyan-300 text-xs py-2 rounded border border-cyan-900/50 transition">{skills.network.accountant >= 10 ? 'Max Level Reached' : 'Buy Level (+£300k)'}</button>
+                                </div>
+
+                                {/* Cover Story */}
+                                <div className="bg-gray-950 p-3 rounded mb-4 border border-gray-800">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">Cover Story</div>
+                                            <div className="text-xs text-gray-500">-0.5% Heat During Laundry per level</div>
+                                        </div>
+                                        <div className="text-xs bg-cyan-900/30 text-cyan-300 px-2 py-1 rounded">Lvl {skills.network.coverStory}</div>
+                                    </div>
+                                    <button onClick={() => buyGrindSkill('network', 'coverStory')} disabled={spendable < 300000 || skills.network.coverStory >= 10} className="w-full bg-cyan-900/30 hover:bg-cyan-900/50 disabled:opacity-30 text-cyan-300 text-xs py-2 rounded border border-cyan-900/50 transition">{skills.network.coverStory >= 10 ? 'Max Level Reached' : 'Buy Level (+£300k)'}</button>
+                                </div>
+
+                                {/* Investment Progress */}
+                                <div className="bg-gray-950 p-2 rounded mb-4 border border-gray-800 text-center">
+                                    <div className="text-xs text-gray-500 mb-1">Grind Investment</div>
+                                    <div className="text-sm font-bold text-white">{formatMoney(skillInvestment.network)} / £1,500,000</div>
+                                    <div className="w-full bg-gray-900 rounded h-2 mt-2 overflow-hidden">
+                                        <div className="bg-cyan-600 h-full" style={{ width: `${Math.min(100, (skillInvestment.network / 1500000) * 100)}%` }}></div>
+                                    </div>
+                                </div>
+
+                                {/* Northampton Connection */}
+                                <div className={`p-3 rounded border-2 ${skillInvestment.network >= 1500000 ? 'bg-cyan-950/30 border-cyan-600' : 'bg-gray-950 border-gray-700'}`}>
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">🔒 Northampton Connection</div>
+                                            <div className="text-xs text-gray-500 mb-2">+2 Loyal Workers</div>
+                                            <div className="text-[10px] text-gray-600">Req: £1.5m Network investment</div>
+                                        </div>
+                                        {skills.network.northampton && <div className="text-xs bg-green-900/50 text-green-300 px-2 py-1 rounded">✓ OWNED</div>}
+                                    </div>
+                                    <button onClick={() => buyPowerfulUpgrade('network', 'northampton')} disabled={skillInvestment.network < 1500000 || spendable < 1800000 || skills.network.northampton} className="w-full bg-cyan-900 hover:bg-cyan-800 disabled:opacity-30 disabled:bg-gray-800 text-cyan-300 text-xs py-2 rounded border border-cyan-600 transition font-bold">
+                                        {skills.network.northampton ? 'OWNED' : 'BUY (£1,800,000)'}
+                                    </button>
+                                </div>
+
+                            </div>
+
+                            {/* Column 4: Intelligence & Heat */}
+                            <div>
+                                <h3 className="text-sm font-bold text-purple-400 mb-3">INTELLIGENCE & HEAT</h3>
+
+                                {/* Safe House */}
+                                <div className="bg-gray-950 p-3 rounded mb-3 border border-gray-800">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">Safe House</div>
+                                            <div className="text-xs text-gray-500">+1% Daily Chance to Pause Heat 1 Day</div>
+                                        </div>
+                                        <div className="text-xs bg-purple-900/30 text-purple-300 px-2 py-1 rounded">Lvl {skills.intelligence.safeHouse}</div>
+                                    </div>
+                                    <button onClick={() => buyGrindSkill('intelligence', 'safeHouse')} disabled={spendable < 300000 || skills.intelligence.safeHouse >= 10} className="w-full bg-purple-900/30 hover:bg-purple-900/50 disabled:opacity-30 text-purple-300 text-xs py-2 rounded border border-purple-900/50 transition">{skills.intelligence.safeHouse >= 10 ? 'Max Level Reached' : 'Buy Level (+£300k)'}</button>
+                                </div>
+
+                                {/* Witness Control */}
+                                <div className="bg-gray-950 p-3 rounded mb-3 border border-gray-800">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">Witness Control</div>
+                                            <div className="text-xs text-gray-500">-1% Heat Gain Rate per level</div>
+                                        </div>
+                                        <div className="text-xs bg-purple-900/30 text-purple-300 px-2 py-1 rounded">Lvl {skills.intelligence.witnessControl}</div>
+                                    </div>
+                                    <button onClick={() => buyGrindSkill('intelligence', 'witnessControl')} disabled={spendable < 300000 || skills.intelligence.witnessControl >= 10} className="w-full bg-purple-900/30 hover:bg-purple-900/50 disabled:opacity-30 text-purple-300 text-xs py-2 rounded border border-purple-900/50 transition">{skills.intelligence.witnessControl >= 10 ? 'Max Level Reached' : 'Buy Level (+£300k)'}</button>
+                                </div>
+
+                                {/* Fixers Network */}
+                                <div className="bg-gray-950 p-3 rounded mb-4 border border-gray-800">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-sm">Fixers Network</div>
+                                            <div className="text-xs text-gray-500">Auto-reduce Heat by 0.1% Daily per level</div>
+                                        </div>
+                                        <div className="text-xs bg-purple-900/30 text-purple-300 px-2 py-1 rounded">Lvl {skills.intelligence.fixers}</div>
+                                    </div>
+                                    <button onClick={() => buyGrindSkill('intelligence', 'fixers')} disabled={spendable < 300000 || skills.intelligence.fixers >= 10} className="w-full bg-purple-900/30 hover:bg-purple-900/50 disabled:opacity-30 text-purple-300 text-xs py-2 rounded border border-purple-900/50 transition">{skills.intelligence.fixers >= 10 ? 'Max Level Reached' : 'Buy Level (+£300k)'}</button>
+                                </div>
+
+                                {/* Investment Progress */}
+                                <div className="bg-gray-950 p-2 rounded mb-4 border border-gray-800 text-center">
+                                    <div className="text-xs text-gray-500 mb-1">Grind Investment</div>
+                                    <div className="text-sm font-bold text-white">{formatMoney(skillInvestment.intelligence)} / £1,500,000</div>
+                                    <div className="w-full bg-gray-900 rounded h-2 mt-2 overflow-hidden">
+                                        <div className="bg-purple-600 h-full" style={{ width: `${Math.min(100, (skillInvestment.intelligence / 1500000) * 100)}%` }}></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Elite Upgrades Section (Full Width) */}
+                        <div className="mt-6 border-t-2 border-orange-600 pt-6">
+                            <h3 className="text-lg font-bold text-orange-400 mb-4 text-center">⭐ ELITE UPGRADES ⭐</h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                {/* The Fall Guy */}
+                                <div className={`p-4 rounded border-2 ${skillInvestment.network >= 5000000 ? 'bg-orange-950/30 border-orange-600' : 'bg-gray-950 border-gray-700'}`}>
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-base">🔒 The Fall Guy</div>
+                                            <div className="text-xs text-gray-400 mb-2 mt-1">Get a Second Chance When Caught</div>
+                                            <div className="text-[10px] text-gray-600">Req: £5m Network investment</div>
+                                        </div>
+                                        {skills.network.senator && <div className="text-xs bg-green-900/50 text-green-300 px-2 py-1 rounded">✓ OWNED</div>}
+                                    </div>
+                                    <button onClick={() => buyPowerfulUpgrade('network', 'senator')} disabled={skillInvestment.network < 5000000 || spendable < 5000000 || skills.network.senator} className="w-full bg-orange-900 hover:bg-orange-800 disabled:opacity-30 disabled:bg-gray-800 text-orange-300 text-xs py-2 rounded border border-orange-600 transition font-bold mt-2">
+                                        {skills.network.senator ? 'OWNED' : 'BUY (£5,000,000)'}
+                                    </button>
+                                </div>
+
+                                {/* Insurance */}
+                                <div className={`p-4 rounded border-2 ${skillInvestment.intelligence >= 5000000 ? 'bg-orange-950/30 border-orange-600' : 'bg-gray-950 border-gray-700'}`}>
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <div className="font-bold text-white text-base">🔒 Insurance</div>
+                                            <div className="text-xs text-gray-400 mb-2 mt-1">Survive One Raid (Auto-Recover)</div>
+                                            <div className="text-[10px] text-gray-600">Req: £5m Intelligence investment</div>
+                                        </div>
+                                        {skills.intelligence.insurance && <div className="text-xs bg-green-900/50 text-green-300 px-2 py-1 rounded">✓ OWNED</div>}
+                                    </div>
+                                    <button onClick={() => buyPowerfulUpgrade('intelligence', 'insurance')} disabled={skillInvestment.intelligence < 5000000 || spendable < 5000000 || skills.intelligence.insurance} className="w-full bg-orange-900 hover:bg-orange-800 disabled:opacity-30 disabled:bg-gray-800 text-orange-300 text-xs py-2 rounded border border-orange-600 transition font-bold mt-2">
+                                        {skills.intelligence.insurance ? 'OWNED' : 'BUY (£5,000,000)'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Finish Button */}
+                        <div className="flex gap-2 mt-8">
+                            <button onClick={finishSkillTree} className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded transition-colors">Start New Game</button>
+                            <button onClick={() => setGameState('menu')} className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-3 rounded transition-colors">Return to Menu</button>
+                        </div>
+                    </div>
+                );
+            }
+
             // --- VIEW: GAME ---
             return (
                 <div key={gameKey} className="bg-gray-950 min-h-screen text-gray-100 font-sans flex flex-col overflow-hidden w-full mx-auto border-x border-gray-800 shadow-2xl no-select">
+                {/* UPDATE NOTIFICATION */}
+                {showUpdateNotice && (
+                    <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4">
+                        <div className="bg-gradient-to-br from-indigo-900 to-purple-900 border-2 border-indigo-500 w-full max-w-md rounded-xl overflow-hidden shadow-2xl">
+                            <div className="p-6 text-center">
+                                <div className="text-4xl mb-4">🎮</div>
+                                <h2 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">Welcome to the "Skills" Update!</h2>
+                                <p className="text-indigo-200 text-sm mb-6">Permanent upgrades, new mechanics, and tons of improvements</p>
+                                <div className="space-y-2">
+                                    <button 
+                                        onClick={() => {
+                                            setShowUpdateNotice(false);
+                                            localStorage.setItem('skillsUpdateSeen', '1');
+                                            window.open('README.md', '_blank');
+                                        }}
+                                        className="w-full bg-white hover:bg-gray-100 text-indigo-900 font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <BookOpen size={18} /> View Full Changelog
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            setShowUpdateNotice(false);
+                                            localStorage.setItem('skillsUpdateSeen', '1');
+                                        }}
+                                        className="w-full bg-indigo-800/50 hover:bg-indigo-800 text-white font-bold py-3 rounded-lg transition-colors"
+                                    >
+                                        Start Playing
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                {/* TUTORIAL BANNER */}
+                {showTutorial && (
+                    <div className="bg-indigo-900/30 border-b border-indigo-700 p-2 text-xs flex items-center justify-between">
+                        <div className="text-indigo-300 font-bold">
+                            {tutorialStep === 1 && 'Welcome! Use Market to buy stock.'}
+                            {tutorialStep === 2 && 'Travel to set up Operations.'}
+                            {tutorialStep === 3 && 'Manage Ops and drop stock to sell.'}
+                            {tutorialStep === 4 && 'Use Heat tab to stall investigation.'}
+                            {tutorialStep === 5 && 'Launder money in Finances to bank it.'}
+                        </div>
+                        <div className="flex gap-2">
+                            <button onClick={() => setShowTutorial(false) || localStorage.setItem('tutorialCompleted','1')} className="px-2 py-1 bg-gray-800 text-gray-300 rounded">Skip</button>
+                            <button onClick={() => {
+                                const nextStep = Math.min(5, tutorialStep + 1);
+                                setTutorialStep(nextStep);
+                                if (nextStep >= 5) {
+                                    setTimeout(() => {
+                                        setShowTutorial(false);
+                                        localStorage.setItem('tutorialCompleted', '1');
+                                    }, 3000);
+                                }
+                            }} className="px-2 py-1 bg-indigo-700 text-white rounded">{tutorialStep >= 5 ? 'Finish' : 'Next'}</button>
+                        </div>
+                    </div>
+                )}
                 {/* MODAL */}
                 {modal && (
                     <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4">
@@ -1520,13 +2532,171 @@
                                                     <button onClick={() => setModal(null)} className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded transition-colors">Cancel</button>
                                                 </>
                                             ) : modal.type === 'gameover' ? (
-                                                <button onClick={quitToMenu} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded transition-colors">Main Menu</button>
+                                                <button onClick={() => enterSkillTree(bank, crypto)} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded transition-colors">Skill Tree</button>
                                             ) : (
                                                 <button onClick={() => setModal(null)} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded transition-colors">Acknowledge</button>
                                             )}
                                         </div>
                                     </>
                                 )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+                
+                {/* EVENT EDITOR MODAL */}
+                {showEventEditor && editingEventData && (
+                    <div className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4">
+                        <div className="bg-gray-900 border border-gray-700 w-full max-w-2xl rounded-lg overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto">
+                            <div className="p-6 border-b border-gray-700 sticky top-0 bg-gray-900">
+                                <h3 className="text-xl font-bold text-cyan-400">Event Editor</h3>
+                            </div>
+                            
+                            <div className="p-6 space-y-4">
+                                {/* ID (Read-only) */}
+                                <div>
+                                    <label className="text-gray-400 text-xs font-bold block mb-1">Event ID (Read-only)</label>
+                                    <div className="bg-gray-950 border border-gray-700 p-2 rounded text-gray-400 text-sm font-mono">{editingEventData.id}</div>
+                                </div>
+
+                                {/* Title */}
+                                <div>
+                                    <label className="text-gray-400 text-xs font-bold block mb-1">Event Title</label>
+                                    <input 
+                                        type="text" 
+                                        value={editingEventData.title}
+                                        onChange={(e) => setEditingEventData(prev => ({ ...prev, title: e.target.value }))}
+                                        className="w-full bg-gray-950 border border-gray-700 p-2 rounded text-white text-sm"
+                                        placeholder="Event title"
+                                    />
+                                </div>
+
+                                {/* Message */}
+                                <div>
+                                    <label className="text-gray-400 text-xs font-bold block mb-1">Event Message</label>
+                                    <textarea 
+                                        value={editingEventData.message}
+                                        onChange={(e) => setEditingEventData(prev => ({ ...prev, message: e.target.value }))}
+                                        className="w-full bg-gray-950 border border-gray-700 p-2 rounded text-white text-sm h-24 resize-none"
+                                        placeholder="Event message text"
+                                    />
+                                </div>
+
+                                {/* Image */}
+                                <div>
+                                    <label className="text-gray-400 text-xs font-bold block mb-1">Image Filename</label>
+                                    <input 
+                                        type="text" 
+                                        value={editingEventData.image || ''}
+                                        onChange={(e) => setEditingEventData(prev => ({ ...prev, image: e.target.value }))}
+                                        className="w-full bg-gray-950 border border-gray-700 p-2 rounded text-white text-sm"
+                                        placeholder="deal.png"
+                                    />
+                                </div>
+
+                                {/* Chance & Trigger */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-gray-400 text-xs font-bold block mb-1">Trigger Chance (%)</label>
+                                        <input 
+                                            type="number" 
+                                            value={editingEventData.chance || 10}
+                                            onChange={(e) => setEditingEventData(prev => ({ ...prev, chance: parseFloat(e.target.value) }))}
+                                            className="w-full bg-gray-950 border border-gray-700 p-2 rounded text-white text-sm"
+                                            min="0"
+                                            max="100"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-gray-400 text-xs font-bold block mb-1">Trigger Type</label>
+                                        <select 
+                                            value={editingEventData.trigger || 'london'}
+                                            onChange={(e) => setEditingEventData(prev => ({ ...prev, trigger: e.target.value }))}
+                                            className="w-full bg-gray-950 border border-gray-700 p-2 rounded text-white text-sm"
+                                        >
+                                            <option value="london">London Travel</option>
+                                            <option value="random">Random Check</option>
+                                            <option value="daily">Daily</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Options */}
+                                <div className="border-t border-gray-700 pt-4">
+                                    <h4 className="text-sm font-bold text-cyan-400 mb-2">Event Options</h4>
+                                    {editingEventData.options?.map((opt, idx) => (
+                                        <div key={idx} className="bg-gray-950 border border-gray-800 p-3 rounded mb-2">
+                                            <div className="grid grid-cols-2 gap-2 mb-2">
+                                                <input 
+                                                    type="text" 
+                                                    value={opt.label}
+                                                    onChange={(e) => {
+                                                        const newOpts = [...editingEventData.options];
+                                                        newOpts[idx].label = e.target.value;
+                                                        setEditingEventData(prev => ({ ...prev, options: newOpts }));
+                                                    }}
+                                                    className="bg-gray-900 border border-gray-700 p-2 rounded text-white text-xs"
+                                                    placeholder="Button label"
+                                                />
+                                                <select 
+                                                    value={opt.style || 'gray'}
+                                                    onChange={(e) => {
+                                                        const newOpts = [...editingEventData.options];
+                                                        newOpts[idx].style = e.target.value;
+                                                        setEditingEventData(prev => ({ ...prev, options: newOpts }));
+                                                    }}
+                                                    className="bg-gray-900 border border-gray-700 p-2 rounded text-white text-xs"
+                                                >
+                                                    <option value="green">Green</option>
+                                                    <option value="gray">Gray</option>
+                                                    <option value="red">Red</option>
+                                                    <option value="yellow">Yellow</option>
+                                                </select>
+                                            </div>
+                                            <input 
+                                                type="text" 
+                                                value={opt.action}
+                                                onChange={(e) => {
+                                                    const newOpts = [...editingEventData.options];
+                                                    newOpts[idx].action = e.target.value;
+                                                    setEditingEventData(prev => ({ ...prev, options: newOpts }));
+                                                }}
+                                                className="w-full bg-gray-900 border border-gray-700 p-2 rounded text-white text-xs mb-2"
+                                                placeholder="Action ID"
+                                            />
+                                            <textarea 
+                                                value={opt.desc}
+                                                onChange={(e) => {
+                                                    const newOpts = [...editingEventData.options];
+                                                    newOpts[idx].desc = e.target.value;
+                                                    setEditingEventData(prev => ({ ...prev, options: newOpts }));
+                                                }}
+                                                className="w-full bg-gray-900 border border-gray-700 p-2 rounded text-white text-xs h-12 resize-none"
+                                                placeholder="Option description"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Buttons */}
+                                <div className="flex gap-2 pt-4 border-t border-gray-700">
+                                    <button 
+                                        onClick={saveEventEdits}
+                                        className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 rounded"
+                                    >
+                                        Save Event
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            setShowEventEditor(false);
+                                            setEditingEventId(null);
+                                            setEditingEventData(null);
+                                        }}
+                                        className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1597,9 +2767,23 @@
                 <div className="bg-gray-900 p-4 border-b border-gray-800 shadow-md z-10" onClick={handleHeaderClick}>
                     <div className="flex justify-between items-center mb-4">
                         <h1 className="text-lg font-black tracking-tighter text-indigo-500 uppercase cursor-pointer select-none">County Lines</h1>
-                        <div className="flex items-center gap-2 bg-gray-800 px-3 py-1 rounded-full border border-gray-700">
-                            <Clock size={14} className="text-indigo-400" />
-                            <span className={`text-xs font-mono font-bold ${limit && day > limit - 2 ? 'text-red-500' : 'text-white'}`}>Day {day} • {formatTime(hour)}</span>
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => setShowBackpack(!showBackpack)} className="bg-gray-800 hover:bg-gray-700 px-3 py-1 rounded-full border border-gray-700 hover:border-green-500 transition-colors flex items-center gap-2" title="Backpack Inventory">
+                                <ShoppingBag size={14} className="text-green-400" />
+                                <span className="text-xs font-mono font-bold text-white">Backpack</span>
+                            </button>
+                            <button onClick={() => setShowHouse(!showHouse)} className="bg-gray-800 hover:bg-gray-700 px-3 py-1 rounded-full border border-gray-700 hover:border-blue-500 transition-colors flex items-center gap-2" title="All Inventory">
+                                <Home size={14} className="text-blue-400" />
+                                <span className="text-xs font-mono font-bold text-white">House</span>
+                            </button>
+                            <button onClick={() => setShowStats(!showStats)} className="bg-gray-800 hover:bg-gray-700 px-3 py-1 rounded-full border border-gray-700 hover:border-indigo-500 transition-colors flex items-center gap-2">
+                                <Briefcase size={14} className="text-yellow-400" />
+                                <span className="text-xs font-mono font-bold text-white">Stats</span>
+                            </button>
+                            <div className="flex items-center gap-2 bg-gray-800 px-3 py-1 rounded-full border border-gray-700">
+                                <Clock size={14} className="text-indigo-400" />
+                                <span className={`text-xs font-mono font-bold ${limit && day > limit - 2 ? 'text-red-500' : 'text-white'}`}>Day {day} • {formatTime(hour)}</span>
+                            </div>
                         </div>
                     </div>
                     
@@ -1642,6 +2826,324 @@
                         <div className="flex flex-col text-center"><span className="text-gray-500 text-xs">Bank (Clean)</span><span className="text-blue-400 font-bold">{formatMoney(bank)}</span></div>
                         <div className="flex flex-col text-right"><span className="text-gray-500 text-xs">Location</span><span className="text-white truncate">{location.name}</span></div>
                     </div>
+
+                    {/* Stats Panel */}
+                    {showStats && (
+                        <div className="mt-4 p-4 bg-gray-800/50 border border-gray-700 rounded-lg">
+                            <h3 className="text-sm font-bold text-yellow-400 mb-3 flex items-center gap-2"><Briefcase size={16}/> YOUR STATS</h3>
+                            <div className="grid grid-cols-2 gap-3 text-xs">
+                                <div className="bg-gray-900 p-2 rounded border border-gray-700">
+                                    <span className="text-gray-500 block mb-1">Strength</span>
+                                    <span className="text-white font-bold text-lg">{strength}</span>
+                                </div>
+                                <div className="bg-gray-900 p-2 rounded border border-gray-700">
+                                    <span className="text-gray-500 block mb-1">Intelligence</span>
+                                    <span className="text-white font-bold text-lg">{intel}</span>
+                                </div>
+                                <div className="bg-gray-900 p-2 rounded border border-gray-700">
+                                    <span className="text-gray-500 block mb-1">Health</span>
+                                    <span className={`font-bold text-lg ${health > 60 ? 'text-green-400' : health > 30 ? 'text-yellow-400' : 'text-red-400'}`}>{Math.floor(health)}%</span>
+                                </div>
+                                <div className="bg-gray-900 p-2 rounded border border-gray-700">
+                                    <span className="text-gray-500 block mb-1">Stress</span>
+                                    <span className={`font-bold text-lg ${stress < 40 ? 'text-green-400' : stress < 70 ? 'text-yellow-400' : 'text-red-400'}`}>{Math.floor(stress)}%</span>
+                                </div>
+                                <div className="bg-gray-900 p-2 rounded border border-gray-700 col-span-2">
+                                    <span className="text-gray-500 block mb-1">Investigation Heat</span>
+                                    <span className={`font-bold text-lg ${investigation < 400 ? 'text-blue-400' : investigation < 750 ? 'text-yellow-400' : 'text-red-500'}`}>{Math.floor(investigation)}/1000</span>
+                                </div>
+                                <div className="bg-gray-900 p-2 rounded border border-gray-700 col-span-2">
+                                    <span className="text-gray-500 block mb-1">Current Inventory Value</span>
+                                    <span className="text-white font-bold text-lg">{(() => {
+                                        let total = 0;
+                                        Object.entries(inventory).forEach(([prodId, qty]) => {
+                                            const prod = productsConfig.find(p => p.id === prodId);
+                                            if (prod && location.id in prices && prodId in prices[location.id]) {
+                                                total += qty * prices[location.id][prodId].sell;
+                                            }
+                                        });
+                                        return formatMoney(total);
+                                    })()}</span>
+                                </div>
+                            </div>
+
+                            {/* Permanent Upgrades Section */}
+                            <div className="mt-4 pt-4 border-t border-gray-600">
+                                <h4 className="text-xs font-bold text-green-400 mb-3">PERMANENT UPGRADES ACTIVE</h4>
+                                <div className="grid grid-cols-1 gap-2 text-xs">
+                                    {/* Operations Upgrades */}
+                                    {skills.operations.haggler > 0 && (
+                                        <div className="bg-indigo-900/30 border border-indigo-600/50 p-2 rounded">
+                                            <span className="text-indigo-300 font-bold">Sweet Talker</span>
+                                            <span className="text-gray-400 ml-2">Lvl {skills.operations.haggler} (-{skills.operations.haggler}% Buy)</span>
+                                        </div>
+                                    )}
+                                    {skills.operations.chemist > 0 && (
+                                        <div className="bg-indigo-900/30 border border-indigo-600/50 p-2 rounded">
+                                            <span className="text-indigo-300 font-bold">Pressure the Trap</span>
+                                            <span className="text-gray-400 ml-2">Lvl {skills.operations.chemist} (+{skills.operations.chemist}% Sell)</span>
+                                        </div>
+                                    )}
+                                    {skills.operations.gangLeader > 0 && (
+                                        <div className="bg-indigo-900/30 border border-indigo-600/50 p-2 rounded">
+                                            <span className="text-indigo-300 font-bold">Gang Leader</span>
+                                            <span className="text-gray-400 ml-2">Lvl {skills.operations.gangLeader} (-{skills.operations.gangLeader}% Wages)</span>
+                                        </div>
+                                    )}
+                                    {skills.operations.equipment > 0 && (
+                                        <div className="bg-indigo-900/30 border border-indigo-600/50 p-2 rounded">
+                                            <span className="text-indigo-300 font-bold">Better Equipment</span>
+                                            <span className="text-gray-400 ml-2">Lvl {skills.operations.equipment} (+{skills.operations.equipment * 2}% Crew Speed)</span>
+                                        </div>
+                                    )}
+                                    {skills.operations.offshore && (
+                                        <div className="bg-indigo-900/30 border border-indigo-600/50 p-2 rounded">
+                                            <span className="text-indigo-300 font-bold">🔒 Crooked Accountant</span>
+                                            <span className="text-gray-400 ml-2">Keep 50% Cash</span>
+                                        </div>
+                                    )}
+
+                                    {/* Logistics Upgrades */}
+                                    {skills.logistics.traffic > 0 && (
+                                        <div className="bg-yellow-900/30 border border-yellow-600/50 p-2 rounded">
+                                            <span className="text-yellow-300 font-bold">Street Racer</span>
+                                            <span className="text-gray-400 ml-2">Lvl {skills.logistics.traffic} (-{skills.logistics.traffic * 2}% Pull Over)</span>
+                                        </div>
+                                    )}
+                                    {skills.logistics.neighborhood > 0 && (
+                                        <div className="bg-yellow-900/30 border border-yellow-600/50 p-2 rounded">
+                                            <span className="text-yellow-300 font-bold">Local Influence</span>
+                                            <span className="text-gray-400 ml-2">Lvl {skills.logistics.neighborhood} (-{skills.logistics.neighborhood * 2}% Raid)</span>
+                                        </div>
+                                    )}
+                                    {skills.logistics.mechanic > 0 && (
+                                        <div className="bg-yellow-900/30 border border-yellow-600/50 p-2 rounded">
+                                            <span className="text-yellow-300 font-bold">Mechanic</span>
+                                            <span className="text-gray-400 ml-2">Lvl {skills.logistics.mechanic} (+{skills.logistics.mechanic * 2}% Escape)</span>
+                                        </div>
+                                    )}
+                                    {skills.logistics.routeMaster > 0 && (
+                                        <div className="bg-yellow-900/30 border border-yellow-600/50 p-2 rounded">
+                                            <span className="text-yellow-300 font-bold">Route Master</span>
+                                            <span className="text-gray-400 ml-2">Lvl {skills.logistics.routeMaster} (-{skills.logistics.routeMaster * 1.5}% Travel Time)</span>
+                                        </div>
+                                    )}
+                                    {skills.logistics.heatDodger > 0 && (
+                                        <div className="bg-yellow-900/30 border border-yellow-600/50 p-2 rounded">
+                                            <span className="text-yellow-300 font-bold">Heat Dodger</span>
+                                            <span className="text-gray-400 ml-2">Lvl {skills.logistics.heatDodger} (-{skills.logistics.heatDodger}% Heat Gain)</span>
+                                        </div>
+                                    )}
+                                    {skills.logistics.mondeo && (
+                                        <div className="bg-yellow-900/30 border border-yellow-600/50 p-2 rounded">
+                                            <span className="text-yellow-300 font-bold">🔒 Grannies Gift</span>
+                                            <span className="text-gray-400 ml-2">Start with Ford Mondeo</span>
+                                        </div>
+                                    )}
+
+                                    {/* Network Upgrades */}
+                                    {skills.network.eyetest > 0 && (
+                                        <div className="bg-cyan-900/30 border border-cyan-600/50 p-2 rounded">
+                                            <span className="text-cyan-300 font-bold">Trap Training</span>
+                                            <span className="text-gray-400 ml-2">Lvl {skills.network.eyetest} (-{(skills.network.eyetest * 1.5).toFixed(1)}% Raid)</span>
+                                        </div>
+                                    )}
+                                    {skills.network.retainer > 0 && (
+                                        <div className="bg-cyan-900/30 border border-cyan-600/50 p-2 rounded">
+                                            <span className="text-cyan-300 font-bold">Police Bribery</span>
+                                            <span className="text-gray-400 ml-2">Lvl {skills.network.retainer} (-{skills.network.retainer * 2}% Heat Growth)</span>
+                                        </div>
+                                    )}
+                                    {skills.network.cleaner > 0 && (
+                                        <div className="bg-cyan-900/30 border border-cyan-600/50 p-2 rounded">
+                                            <span className="text-cyan-300 font-bold">Cleaner</span>
+                                            <span className="text-gray-400 ml-2">Lvl {skills.network.cleaner} (-{skills.network.cleaner * 5}% Laundry Time)</span>
+                                        </div>
+                                    )}
+                                    {skills.network.accountant > 0 && (
+                                        <div className="bg-cyan-900/30 border border-cyan-600/50 p-2 rounded">
+                                            <span className="text-cyan-300 font-bold">Accountant</span>
+                                            <span className="text-gray-400 ml-2">Lvl {skills.network.accountant} (+{skills.network.accountant * 2}% Laundry Payout)</span>
+                                        </div>
+                                    )}
+                                    {skills.network.coverStory > 0 && (
+                                        <div className="bg-cyan-900/30 border border-cyan-600/50 p-2 rounded">
+                                            <span className="text-cyan-300 font-bold">Cover Story</span>
+                                            <span className="text-gray-400 ml-2">Lvl {skills.network.coverStory} (-{skills.network.coverStory * 0.5}% Heat During Laundry)</span>
+                                        </div>
+                                    )}
+                                    {skills.network.northampton && (
+                                        <div className="bg-cyan-900/30 border border-cyan-600/50 p-2 rounded">
+                                            <span className="text-cyan-300 font-bold">🔒 Northampton Connection</span>
+                                            <span className="text-gray-400 ml-2">+2 Loyal Workers</span>
+                                        </div>
+                                    )}
+                                    {skills.network.senator && (
+                                        <div className="bg-purple-900/30 border border-purple-600/50 p-2 rounded">
+                                            <span className="text-purple-300 font-bold">🔒 The Fall Guy</span>
+                                            <span className="text-gray-400 ml-2">Second Chance Active</span>
+                                        </div>
+                                    )}
+                                    {skills.intelligence.safeHouse > 0 && (
+                                        <div className="bg-purple-900/30 border border-purple-600/50 p-2 rounded">
+                                            <span className="text-purple-300 font-bold">Safe House</span>
+                                            <span className="text-gray-400 ml-2">Lvl {skills.intelligence.safeHouse} ({skills.intelligence.safeHouse}% Daily Pause Chance)</span>
+                                        </div>
+                                    )}
+                                    {skills.intelligence.witnessControl > 0 && (
+                                        <div className="bg-purple-900/30 border border-purple-600/50 p-2 rounded">
+                                            <span className="text-purple-300 font-bold">Witness Control</span>
+                                            <span className="text-gray-400 ml-2">Lvl {skills.intelligence.witnessControl} (-{skills.intelligence.witnessControl}% Heat Gain)</span>
+                                        </div>
+                                    )}
+                                    {skills.intelligence.fixers > 0 && (
+                                        <div className="bg-purple-900/30 border border-purple-600/50 p-2 rounded">
+                                            <span className="text-purple-300 font-bold">Fixers Network</span>
+                                            <span className="text-gray-400 ml-2">Lvl {skills.intelligence.fixers} (+{(skills.intelligence.fixers * 0.1).toFixed(1)}% Heat Reduction Daily)</span>
+                                        </div>
+                                    )}
+                                    {skills.intelligence.insurance && (
+                                        <div className="bg-orange-900/30 border border-orange-600/50 p-2 rounded">
+                                            <span className="text-orange-300 font-bold">🔒 Insurance</span>
+                                            <span className="text-gray-400 ml-2">Survive One Raid</span>
+                                        </div>
+                                    )}
+
+                                    {/* No upgrades message */}
+                                    {!skills.operations.haggler && !skills.operations.chemist && !skills.operations.gangLeader && !skills.operations.equipment && !skills.operations.offshore &&
+                                     !skills.logistics.traffic && !skills.logistics.neighborhood && !skills.logistics.mechanic && !skills.logistics.routeMaster && !skills.logistics.heatDodger && !skills.logistics.mondeo &&
+                                     !skills.network.eyetest && !skills.network.retainer && !skills.network.cleaner && !skills.network.accountant && !skills.network.coverStory && !skills.network.northampton && !skills.network.senator &&
+                                     !skills.intelligence.safeHouse && !skills.intelligence.witnessControl && !skills.intelligence.fixers && !skills.intelligence.insurance && (
+                                        <div className="text-gray-500 italic text-xs p-2 text-center">No upgrades active</div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Backpack Panel */}
+                    {showBackpack && (
+                        <div className="mt-4 p-4 bg-green-900/20 border border-green-700 rounded-lg">
+                            <h3 className="text-sm font-bold text-green-400 mb-3 flex items-center gap-2"><ShoppingBag size={16}/> BACKPACK (On Person)</h3>
+                            <div className="grid grid-cols-1 gap-2 text-xs">
+                                {productsConfig.map(prod => {
+                                    const qty = inventory[prod.id] || 0;
+                                    const priceData = prices[location.id]?.[prod.id];
+                                    const value = qty * (priceData?.sell || 0);
+                                    return (
+                                        <div key={prod.id} className="bg-gray-900/50 p-2 rounded border border-gray-700 flex justify-between items-center">
+                                            <div>
+                                                <span className="text-white font-bold">{prod.name}</span>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-white font-mono">{qty} {prod.label}</div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* House Panel - All Locations */}
+                    {showHouse && (
+                        <div className="mt-4 p-4 bg-blue-900/20 border border-blue-700 rounded-lg">
+                            <h3 className="text-sm font-bold text-blue-400 mb-3 flex items-center gap-2"><Home size={16}/> HOUSE INVENTORY</h3>
+                            <div className="space-y-4">
+                                {/* Cash in Hand */}
+                                <div className="bg-gray-900/50 p-3 rounded border border-yellow-700/50">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-yellow-400 font-bold">Cash in Hand</span>
+                                        <span className="text-white font-mono font-bold">{formatMoney(cash)}</span>
+                                    </div>
+                                </div>
+
+                                {/* Bank */}
+                                <div className="bg-gray-900/50 p-3 rounded border border-blue-700/50">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-blue-400 font-bold">Bank (Clean)</span>
+                                        <span className="text-white font-mono font-bold">{formatMoney(bank)}</span>
+                                    </div>
+                                </div>
+
+                                {/* Crypto */}
+                                <div className="bg-gray-900/50 p-3 rounded border border-orange-700/50">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-orange-400 font-bold">Bitcoin</span>
+                                        <span className="text-white font-mono font-bold">{crypto} BTC ({formatMoney(crypto * btcPrice)})</span>
+                                    </div>
+                                </div>
+
+                                {/* Operations at Each Location */}
+                                <div className="border-t border-gray-700 pt-3">
+                                    <h4 className="text-xs font-bold text-cyan-400 mb-2">TRAP HOUSE SAFES</h4>
+                                    {LOCATIONS.map(loc => {
+                                        const locOps = Object.entries(operations).filter(([_, op]) => op.locationId === loc.id);
+                                        const totalCashAtLocation = locOps.reduce((sum, [_, op]) => sum + op.cash, 0);
+
+                                        if (locOps.length === 0) return null;
+
+                                        // Calculate stock breakdown by product
+                                        const stockByProduct = {};
+                                        locOps.forEach(([_, op]) => {
+                                            productsConfig.forEach(p => {
+                                                if (!stockByProduct[p.id]) {
+                                                    stockByProduct[p.id] = 0;
+                                                }
+                                                stockByProduct[p.id] += op.stock[p.id] || 0;
+                                            });
+                                        });
+
+                                        return (
+                                            <div key={loc.id} className="bg-gray-900/50 p-3 rounded border border-gray-700 mb-3">
+                                                <div className="font-bold text-cyan-300 text-xs mb-2">{loc.name}</div>
+                                                
+                                                {/* Cash in Safe */}
+                                                <div className="bg-gray-800 p-2 rounded mb-2 flex justify-between">
+                                                    <span className="text-yellow-400 text-[10px]">Cash in Safe</span>
+                                                    <span className="text-white font-mono text-[10px] font-bold">{formatMoney(totalCashAtLocation)}</span>
+                                                </div>
+
+                                                {/* Stock Breakdown */}
+                                                <div className="space-y-1">
+                                                    {productsConfig.map(p => {
+                                                        // Collect processed and unprocessed from all ops at this location
+                                                        let totalProcessed = 0;
+                                                        let totalUnprocessed = 0;
+                                                        
+                                                        locOps.forEach(([_, op]) => {
+                                                            totalProcessed += op.stock[p.id] || 0;
+                                                            totalUnprocessed += op.processing[p.id] || 0;
+                                                        });
+                                                        
+                                                        if (totalProcessed === 0 && totalUnprocessed === 0) return null;
+                                                        
+                                                        const priceData = prices[loc.id]?.[p.id];
+                                                        const processedValue = Math.floor(totalProcessed * (priceData?.sell || 0));
+                                                        const unprocessedValue = Math.floor(totalUnprocessed * p.baseBuy);
+                                                        const totalValue = processedValue + unprocessedValue;
+
+                                                        return (
+                                                            <div key={p.id} className="bg-gray-800/50 p-2 rounded text-[9px]">
+                                                                <div className="flex justify-between mb-1">
+                                                                    <span className="text-green-400 font-bold">{p.name}</span>
+                                                                    <span className="text-cyan-400">{formatMoney(totalValue)}</span>
+                                                                </div>
+                                                                <div className="grid grid-cols-2 gap-1 text-[8px] text-gray-400">
+                                                                    {totalUnprocessed > 0 && <div>Unproc: {totalUnprocessed} {p.label}</div>}
+                                                                    {totalProcessed > 0 && <div>Proc: {totalProcessed} {p.unit}</div>}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Main Content */}
@@ -1652,19 +3154,124 @@
                             <h2 className="text-xl font-bold text-red-500 flex items-center gap-2"><Lock size={20}/> Admin Config</h2>
                             <p className="text-xs text-gray-500">Edit Game Balance.</p>
                             {productsConfig.map(p => (
-                                <div key={p.id} className="bg-gray-900 border border-gray-800 p-3 rounded text-xs space-y-2">
-                                    <div className="font-bold text-white flex justify-between"><span>{p.name} ({p.label})</span><span className="text-gray-500">{p.unit}</span></div>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <div><label className="text-gray-600 block">Min Buy</label><input type="number" value={p.minBuy} onChange={(e) => updateProductConfig(p.id, 'minBuy', e.target.value)} className="bg-gray-800 text-white w-full p-1 rounded border border-gray-700"/></div>
-                                        <div><label className="text-gray-600 block">Max Buy</label><input type="number" value={p.maxBuy} onChange={(e) => updateProductConfig(p.id, 'maxBuy', e.target.value)} className="bg-gray-800 text-white w-full p-1 rounded border border-gray-700"/></div>
-                                        <div><label className="text-gray-600 block">Min Sell</label><input type="number" value={p.minSell} onChange={(e) => updateProductConfig(p.id, 'minSell', e.target.value)} className="bg-gray-800 text-white w-full p-1 rounded border border-gray-700"/></div>
-                                        <div><label className="text-gray-600 block">Max Sell</label><input type="number" value={p.maxSell} onChange={(e) => updateProductConfig(p.id, 'maxSell', e.target.value)} className="bg-gray-800 text-white w-full p-1 rounded border border-gray-700"/></div>
-                                        <div><label className="text-gray-600 block">Conv (Units)</label><input type="number" value={p.conversion} onChange={(e) => updateProductConfig(p.id, 'conversion', e.target.value)} className="bg-gray-800 text-white w-full p-1 rounded border border-gray-700"/></div>
-                                        <div><label className="text-gray-600 block">Demand</label><input type="number" step="0.1" value={p.demand || 1} onChange={(e) => updateProductConfig(p.id, 'demand', e.target.value)} className="bg-gray-800 text-white w-full p-1 rounded border border-gray-700"/></div>
-                                    </div>
+                                <div key={p.id} className="bg-gray-900 border border-gray-800 p-3 rounded text-xs">
+                                    <button 
+                                        onClick={() => setExpandedProducts(prev => ({ ...prev, [p.id]: !prev[p.id] }))}
+                                        className="w-full flex justify-between items-center text-white font-bold hover:text-indigo-400 transition-colors mb-2"
+                                    >
+                                        <span>{p.name} ({p.label})</span>
+                                        <span className="text-gray-500">{expandedProducts[p.id] ? '▼' : '▶'}</span>
+                                    </button>
+                                    
+                                    {expandedProducts[p.id] && (
+                                        <div className="grid grid-cols-2 gap-2 space-y-2">
+                                            <div><label className="text-gray-600 block">Min Buy</label><input type="number" value={p.minBuy} onChange={(e) => updateProductConfig(p.id, 'minBuy', e.target.value)} className="bg-gray-800 text-white w-full p-1 rounded border border-gray-700"/></div>
+                                            <div><label className="text-gray-600 block">Max Buy</label><input type="number" value={p.maxBuy} onChange={(e) => updateProductConfig(p.id, 'maxBuy', e.target.value)} className="bg-gray-800 text-white w-full p-1 rounded border border-gray-700"/></div>
+                                            <div><label className="text-gray-600 block">Min Sell</label><input type="number" value={p.minSell} onChange={(e) => updateProductConfig(p.id, 'minSell', e.target.value)} className="bg-gray-800 text-white w-full p-1 rounded border border-gray-700"/></div>
+                                            <div><label className="text-gray-600 block">Max Sell</label><input type="number" value={p.maxSell} onChange={(e) => updateProductConfig(p.id, 'maxSell', e.target.value)} className="bg-gray-800 text-white w-full p-1 rounded border border-gray-700"/></div>
+                                            <div><label className="text-gray-600 block">Conv (Units)</label><input type="number" value={p.conversion} onChange={(e) => updateProductConfig(p.id, 'conversion', e.target.value)} className="bg-gray-800 text-white w-full p-1 rounded border border-gray-700"/></div>
+                                            <div><label className="text-gray-600 block">Demand</label><input type="number" step="0.1" value={p.demand || 1} onChange={(e) => updateProductConfig(p.id, 'demand', e.target.value)} className="bg-gray-800 text-white w-full p-1 rounded border border-gray-700"/></div>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                             <button onClick={applyAdminChanges} className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded font-bold">Apply & Refresh Prices</button>
+                            
+                            {/* Cheat Buttons */}
+                            <div className="border-t border-gray-700 pt-4 mt-4">
+                                <h3 className="text-sm font-bold text-yellow-500 mb-2 flex items-center gap-2"><Zap size={16}/> Test Cheats</h3>
+                                
+                                {/* Cash */}
+                                <div className="mb-3">
+                                    <p className="text-xs text-gray-500 mb-1">Cash (+100k increments)</p>
+                                    <div className="grid grid-cols-4 gap-2">
+                                        <button onClick={() => { setCash(c => c + 100000); addLog("✓ +100k Cash"); }} className="bg-yellow-900/50 hover:bg-yellow-900 text-yellow-300 py-2 rounded border border-yellow-800 text-xs font-bold">+100k</button>
+                                        <button onClick={() => { setCash(c => c + 500000); addLog("✓ +500k Cash"); }} className="bg-yellow-900/50 hover:bg-yellow-900 text-yellow-300 py-2 rounded border border-yellow-800 text-xs font-bold">+500k</button>
+                                        <button onClick={() => { setCash(c => c + 1000000); addLog("✓ +1m Cash"); }} className="bg-yellow-900/50 hover:bg-yellow-900 text-yellow-300 py-2 rounded border border-yellow-800 text-xs font-bold">+1m</button>
+                                        <button onClick={() => { setCash(5000000); addLog("✓ Set Cash to 5m"); }} className="bg-yellow-900/50 hover:bg-yellow-900 text-yellow-300 py-2 rounded border border-yellow-800 text-xs font-bold">5m</button>
+                                    </div>
+                                </div>
+
+                                {/* Bank */}
+                                <div className="mb-3">
+                                    <p className="text-xs text-gray-500 mb-1">Bank (+100k increments)</p>
+                                    <div className="grid grid-cols-4 gap-2">
+                                        <button onClick={() => { setBank(b => b + 100000); addLog("✓ +100k Bank"); }} className="bg-blue-900/50 hover:bg-blue-900 text-blue-300 py-2 rounded border border-blue-800 text-xs font-bold">+100k</button>
+                                        <button onClick={() => { setBank(b => b + 500000); addLog("✓ +500k Bank"); }} className="bg-blue-900/50 hover:bg-blue-900 text-blue-300 py-2 rounded border border-blue-800 text-xs font-bold">+500k</button>
+                                        <button onClick={() => { setBank(b => b + 1000000); addLog("✓ +1m Bank"); }} className="bg-blue-900/50 hover:bg-blue-900 text-blue-300 py-2 rounded border border-blue-800 text-xs font-bold">+1m</button>
+                                        <button onClick={() => { setBank(5000000); addLog("✓ Set Bank to 5m"); }} className="bg-blue-900/50 hover:bg-blue-900 text-blue-300 py-2 rounded border border-blue-800 text-xs font-bold">5m</button>
+                                    </div>
+                                </div>
+
+                                {/* Crypto */}
+                                <div className="mb-3">
+                                    <p className="text-xs text-gray-500 mb-1">Crypto</p>
+                                    <button onClick={() => { setCrypto(c => c + 1); addLog("✓ +1 BTC"); }} className="w-full bg-orange-900/50 hover:bg-orange-900 text-orange-300 py-2 rounded border border-orange-800 text-xs font-bold">+1 BTC</button>
+                                </div>
+
+                                {/* Add Drugs */}
+                                <div className="mb-3">
+                                    <p className="text-xs text-gray-500 mb-1">Add Drugs (to inventory)</p>
+                                    <div className="grid grid-cols-2 gap-2 text-xs">
+                                        {productsConfig.map(prod => (
+                                            <button 
+                                                key={prod.id}
+                                                onClick={() => { 
+                                                    setInventory(prev => ({ ...prev, [prod.id]: (prev[prod.id] || 0) + 10 }));
+                                                    addLog(`✓ +10 ${prod.name}`);
+                                                }}
+                                                className="bg-purple-900/50 hover:bg-purple-900 text-purple-300 py-1 rounded border border-purple-800 font-bold"
+                                            >
+                                                +10 {prod.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Event Manager */}
+                            <div className="border-t border-gray-700 pt-4 mt-4">
+                                <div className="flex justify-between items-center mb-3">
+                                    <h3 className="text-sm font-bold text-cyan-500 flex items-center gap-2"><BookOpen size={16}/> Event Manager</h3>
+                                    <button onClick={createNewEvent} className="bg-cyan-600 hover:bg-cyan-700 text-white px-2 py-1 rounded text-[10px] font-bold">+ New Event</button>
+                                </div>
+
+                                <div className="space-y-2 max-h-96 overflow-y-auto">
+                                    {customEvents.map(evt => (
+                                        <div key={evt.id} className="bg-gray-850 border border-gray-700 p-2 rounded text-xs">
+                                            <div className="flex justify-between items-start gap-2">
+                                                <div className="flex-1">
+                                                    <div className="font-bold text-cyan-400">{evt.title}</div>
+                                                    <div className="text-[9px] text-gray-500">ID: {evt.id}</div>
+                                                    <div className="text-[9px] text-gray-500 mt-1">Chance: {evt.chance}% | Trigger: {evt.trigger || 'london'}</div>
+                                                </div>
+                                                <div className="flex gap-1">
+                                                    <button 
+                                                        onClick={() => {
+                                                            setEditingEventId(evt.id);
+                                                            setEditingEventData(JSON.parse(JSON.stringify(evt)));
+                                                            setShowEventEditor(true);
+                                                        }}
+                                                        className="bg-blue-900/50 hover:bg-blue-900 text-blue-300 px-2 py-1 rounded text-[9px] font-bold"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => {
+                                                            if (confirm(`Delete "${evt.title}"?`)) {
+                                                                deleteEvent(evt.id);
+                                                            }
+                                                        }}
+                                                        className="bg-red-900/50 hover:bg-red-900 text-red-300 px-2 py-1 rounded text-[9px] font-bold"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     )}
                     
@@ -1688,11 +3295,12 @@
                             const priceData = prices[location.id]?.[prod.id];
                             const owned = inventory[prod.id] || 0;
                             if (!priceData) return <div key={prod.id} className="text-xs text-gray-600 p-4 text-center">Loading Market Data...</div>;
+                            const effectiveBuyPrice = getEffectivePrice(priceData.buy, 'buy');
                             return (
                                 <div key={prod.id} className="bg-gray-900 p-4 rounded-lg border border-gray-800 flex justify-between items-center">
                                     <div><h3 className="font-bold text-gray-200">{prod.name}</h3><div className="text-xs text-gray-500 mt-1 flex gap-2"><span className="bg-gray-800 px-1 rounded text-gray-400">Bag: {owned} {prod.label}</span></div></div>
                                     <div className="text-right">
-                                        <div className="text-lg font-mono text-indigo-400 mb-1">{formatMoney(priceData.buy)}</div>
+                                        <div className="text-lg font-mono text-indigo-400 mb-1">{formatMoney(effectiveBuyPrice)}</div>
                                         <div className="text-[10px] text-gray-600 mb-1">per {prod.label}</div>
                                         {location.id === 'lon' ? <button onClick={() => buyProduct(prod.id)} disabled={modal || eventQueue.length > 0} className="bg-gray-800 hover:bg-gray-700 text-green-500 px-4 py-2 rounded text-xs font-bold border border-gray-700 disabled:opacity-30">BUY</button> : <span className="text-xs text-gray-600 bg-gray-950 px-2 py-1 rounded">No Connect</span>}
                                     </div>
@@ -1768,10 +3376,18 @@
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2">
-                                    <button onClick={() => travelTo(loc, 'train')} disabled={modal || eventQueue.length > 0} className="flex flex-col items-center justify-center p-2 bg-gray-800 hover:bg-indigo-900/40 border border-gray-700 rounded transition-colors disabled:opacity-30"><div className="flex items-center gap-1 text-xs text-indigo-400 font-bold mb-1"><Train size={14} /> Train</div><div className="text-white font-mono text-sm">{formatMoney(details.train.cost)}</div><div className="text-[10px] text-gray-500">{details.train.hours}h • Risk: None</div></button>
-                                    <button onClick={() => travelTo(loc, 'coach')} disabled={modal || eventQueue.length > 0} className="flex flex-col items-center justify-center p-2 bg-gray-800 hover:bg-indigo-900/40 border border-gray-700 rounded transition-colors disabled:opacity-30"><div className="flex items-center gap-1 text-xs text-orange-400 font-bold mb-1"><Bus size={14} /> Coach</div><div className="text-white font-mono text-sm">{formatMoney(details.coach.cost)}</div><div className="text-[10px] text-gray-500">{details.coach.hours}h • Risk: None</div></button>
-                                    <button onClick={() => travelTo(loc, 'car')} disabled={modal || eventQueue.length > 0} className="flex flex-col items-center justify-center p-2 bg-gray-800 hover:bg-red-900/40 border border-gray-700 rounded transition-colors disabled:opacity-30"><div className="flex items-center gap-1 text-xs text-red-400 font-bold mb-1"><Car size={14} /> Car</div><div className="text-white font-mono text-sm">{formatMoney(details.car.cost)}</div><div className="text-[10px] text-gray-500">{details.car.hours}h • Heat: x2</div></button>
-                                    <button onClick={() => travelTo(loc, 'free')} disabled={modal || eventQueue.length > 0} className="flex flex-col items-center justify-center p-2 bg-gray-800 hover:bg-red-900/20 border border-gray-700 hover:border-red-500/50 rounded transition-colors disabled:opacity-30 group"><div className="flex items-center gap-1 text-xs text-gray-400 font-bold mb-1 group-hover:text-red-300"><TicketX size={14} /> Bump</div><div className="text-white font-mono text-sm">Free</div><div className="text-[10px] text-gray-500">{details.free.hours}h • Risk: High</div></button>
+                                    <Tooltip text="Fast and safe. Costs more.">
+                                        <button onClick={() => travelTo(loc, 'train')} disabled={modal || eventQueue.length > 0} className="flex flex-col items-center justify-center p-2 bg-gray-800 hover:bg-indigo-900/40 border border-gray-700 rounded transition-colors disabled:opacity-30"><div className="flex items-center gap-1 text-xs text-indigo-400 font-bold mb-1"><Train size={14} /> Train</div><div className="text-white font-mono text-sm">{formatMoney(details.train.cost)}</div><div className="text-[10px] text-gray-500">{details.train.hours}h • Risk: None</div></button>
+                                    </Tooltip>
+                                    <Tooltip text="Cheap but slow. Safe.">
+                                        <button onClick={() => travelTo(loc, 'coach')} disabled={modal || eventQueue.length > 0} className="flex flex-col items-center justify-center p-2 bg-gray-800 hover:bg-indigo-900/40 border border-gray-700 rounded transition-colors disabled:opacity-30"><div className="flex items-center gap-1 text-xs text-orange-400 font-bold mb-1"><Bus size={14} /> Coach</div><div className="text-white font-mono text-sm">{formatMoney(details.coach.cost)}</div><div className="text-[10px] text-gray-500">{details.coach.hours}h • Risk: None</div></button>
+                                    </Tooltip>
+                                    <Tooltip text="Fastest by car, doubles heat.">
+                                        <button onClick={() => travelTo(loc, 'car')} disabled={modal || eventQueue.length > 0} className="flex flex-col items-center justify-center p-2 bg-gray-800 hover:bg-red-900/40 border border-gray-700 rounded transition-colors disabled:opacity-30"><div className="flex items-center gap-1 text-xs text-red-400 font-bold mb-1"><Car size={14} /> Car</div><div className="text-white font-mono text-sm">{formatMoney(details.car.cost)}</div><div className="text-[10px] text-gray-500">{details.car.hours}h • Heat: x2</div></button>
+                                    </Tooltip>
+                                    <Tooltip text="Risky bump – high chance of trouble.">
+                                        <button onClick={() => travelTo(loc, 'free')} disabled={modal || eventQueue.length > 0} className="flex flex-col items-center justify-center p-2 bg-gray-800 hover:bg-red-900/20 border border-gray-700 hover:border-red-500/50 rounded transition-colors disabled:opacity-30 group"><div className="flex items-center gap-1 text-xs text-gray-400 font-bold mb-1 group-hover:text-red-300"><TicketX size={14} /> Bump</div><div className="text-white font-mono text-sm">Free</div><div className="text-[10px] text-gray-500">{details.free.hours}h • Risk: High</div></button>
+                                    </Tooltip>
                                 </div>
                             </div>
                             )
@@ -1840,10 +3456,11 @@
                     <div className="space-y-6">
                         <h2 className="text-xl font-bold text-white">Operations</h2>
                         <div className="bg-gray-900 p-3 rounded-lg border border-gray-800">
-                            <div className="flex justify-between items-center mb-3">
+                            <div className="flex justify-between items-center mb-3 flex-wrap gap-2">
                                 <div className="text-center"><div className="text-gray-500 text-[10px] uppercase mb-1">{CREW_CONFIG.roadman.label}</div><div className="text-xl font-bold text-green-400">{crew.roadman}</div><div className="text-[9px] text-gray-600">Wage: £{CREW_CONFIG.roadman.dailyWage * 7}/wk</div></div>
                                 <div className="text-center"><div className="text-gray-500 text-[10px] uppercase mb-1">{CREW_CONFIG.coerced.label}</div><div className="text-xl font-bold text-yellow-500">{crew.coerced}</div><div className="text-[9px] text-gray-600">Wage: £{CREW_CONFIG.coerced.dailyWage * 7}/wk</div></div>
                                 <div className="text-center"><div className="text-gray-500 text-[10px] uppercase mb-1">{CREW_CONFIG.blackmailed.label}</div><div className="text-xl font-bold text-red-500">{crew.blackmailed}</div><div className="text-[9px] text-gray-600">Wage: £{CREW_CONFIG.blackmailed.dailyWage * 7}/wk</div></div>
+                                {crew.loyal > 0 && <div className="text-center"><div className="text-gray-500 text-[10px] uppercase mb-1">{CREW_CONFIG.loyal.label}</div><div className="text-xl font-bold text-blue-400">{crew.loyal}</div><div className="text-[9px] text-gray-600">Wage: £{CREW_CONFIG.loyal.dailyWage * 7}/wk</div></div>}
                             </div>
                             <div className="grid grid-cols-1 gap-2">
                                 <button onClick={() => recruitCrew('roadman')} disabled={modal || eventQueue.length > 0} className="bg-indigo-900/30 hover:bg-indigo-900/50 text-indigo-300 text-[10px] py-3 rounded border border-indigo-900/50 flex items-center justify-between px-3 disabled:opacity-30 text-left">
@@ -1961,11 +3578,11 @@
                             <h2 className="text-xl font-bold text-white">Finances & Laundering</h2>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="bg-gray-900 p-4 rounded-lg border border-gray-800 text-center"><div className="text-gray-500 text-xs mb-1">Cash (Seizable)</div><div className="text-xl font-bold text-green-400 mb-1">{formatMoney(cash)}</div><div className="text-[10px] text-gray-600">Dirty Money</div></div>
-                                <div className="bg-gray-900 p-4 rounded-lg border border-gray-800 text-center"><div className="text-gray-500 text-xs mb-1">Bank (Safe)</div><div className="text-xl font-bold text-blue-400 mb-1">{formatMoney(bank)}</div><div className="text-[10px] text-gray-600">Earns 1% Daily</div></div>
+                                <div className="bg-gray-900 p-4 rounded-lg border border-gray-800 text-center"><div className="text-gray-500 text-xs mb-1">Bank (Safe)</div><div className="text-xl font-bold text-blue-400 mb-1">{formatMoney(bank)}</div><div className="text-[10px] text-gray-600">Earns 0.01% Daily</div></div>
                             </div>
                             <div className="bg-gray-900 p-4 rounded-lg border border-gray-800"><h3 className="font-bold text-white text-xs uppercase mb-3">Vitals</h3><div className="grid grid-cols-3 gap-2 text-center text-xs"><div className="bg-gray-800 p-2 rounded"><div className="text-gray-500">Stress</div><div className={`${stress > 80 ? 'text-red-500' : 'text-white'} font-bold`}>{Math.floor(stress)}%</div></div><div className="bg-gray-800 p-2 rounded"><div className="text-gray-500">Health</div><div className={`${health < 30 ? 'text-red-500' : 'text-green-500'} font-bold`}>{Math.floor(health)}%</div></div><div className="bg-gray-800 p-2 rounded"><div className="text-gray-500">Strength</div><div className="text-blue-400 font-bold">{Math.floor(strength)}</div></div></div></div>
                             <div className="bg-gray-900 p-4 rounded-lg border border-gray-800"><div className="flex justify-between items-center mb-4"><h3 className="font-bold text-white flex items-center gap-2"><Bitcoin size={16} className="text-orange-500"/> Crypto Assets</h3><div className="text-right"><div className="text-xs text-gray-500">BTC Price</div><div className="text-orange-400 font-mono">{formatMoney(btcPrice)}</div></div></div><div className="text-center mb-4"><div className="text-3xl font-black text-white">{crypto.toFixed(4)} <span className="text-sm text-gray-500">BTC</span></div><div className="text-xs text-gray-500">Value: {formatMoney(crypto * btcPrice)}</div></div><div className="grid grid-cols-2 gap-2"><button onClick={() => buyCrypto(1000)} disabled={cash < 1000 || modal || eventQueue.length > 0} className="bg-green-900/30 hover:bg-green-900/50 text-green-400 text-xs py-2 rounded border border-green-900/50">Buy £1k BTC</button><button onClick={() => sellCrypto(crypto)} disabled={crypto <= 0 || modal || eventQueue.length > 0} className="bg-red-900/30 hover:bg-red-900/50 text-red-400 text-xs py-2 rounded border border-red-900/50">Sell All BTC</button></div></div>
-                            <div className="bg-gray-900 p-4 rounded-lg border border-gray-800"><h3 className="font-bold text-white flex items-center gap-2 mb-3"><RefreshCw size={16} className="text-purple-500"/> Money Laundering</h3>{location?.contact ? (<div className="bg-gray-800/50 p-3 rounded mb-4"><div className="flex justify-between items-center mb-1"><span className="text-sm font-bold text-gray-300">{location.contact.name}</span><span className="text-xs bg-purple-900 text-purple-300 px-2 py-1 rounded">Fee: {(location.contact.fee * 100).toFixed(0)}%</span></div><div className="text-xs text-gray-500 mb-3">{location.contact.desc} • Takes {location.contact.time} hours</div><button onClick={() => launderMoney(cash)} disabled={cash <= 0 || modal || eventQueue.length > 0} className="w-full bg-purple-700 hover:bg-purple-600 text-white text-xs py-2 rounded disabled:opacity-50">Launder All Cash</button></div>) : (<div className="text-gray-500 text-xs p-4 text-center">Laundering unavailable here.</div>)}{laundering.length > 0 && (<div><div className="text-[10px] uppercase text-gray-500 font-bold mb-2">Pending Transactions</div><div className="space-y-1">{laundering.map(job => (<div key={job.id} className="flex justify-between text-xs bg-gray-950 p-2 rounded"><span className="text-gray-400">{job.location}</span><span className="text-white">{formatMoney(job.payout)}</span><span className="text-yellow-500">{job.hoursLeft}h left</span></div>))}</div></div>)}</div>
+                            <div className="bg-gray-900 p-4 rounded-lg border border-gray-800"><h3 className="font-bold text-white flex items-center gap-2 mb-3"><RefreshCw size={16} className="text-purple-500"/> Money Laundering</h3>{location?.contact ? (<div className="bg-gray-800/50 p-3 rounded mb-4"><div className="flex justify-between items-center mb-1"><span className="text-sm font-bold text-gray-300">{location.contact.name}</span><span className="text-xs bg-purple-900 text-purple-300 px-2 py-1 rounded">Fee: {(location.contact.fee * 100).toFixed(0)}%</span></div><div className="text-xs text-gray-500 mb-3">{location.contact.desc} • Takes {(() => { const base = location.contact.time; const mod = Math.max(0.5, (1 - (skills.network.cleaner * 0.05))); return Math.max(1, Math.ceil(base * mod)); })()} hours</div><div className="mb-3"><label className="text-xs text-gray-400 block mb-1">Amount to Launder</label><div className="flex gap-2"><input type="number" value={launderAmount} onChange={(e) => setLaunderAmount(e.target.value)} placeholder={`Max: ${formatMoney(cash)}`} className="flex-1 bg-gray-900 border border-gray-700 text-white px-2 py-1 rounded text-xs" min="0" max={cash} /><button onClick={() => setLaunderAmount(cash.toString())} className="bg-gray-700 hover:bg-gray-600 text-gray-300 px-3 py-1 rounded text-xs">Max</button></div></div><div className="grid grid-cols-2 gap-2"><button onClick={() => { const amt = parseInt(launderAmount) || 0; if (amt > 0 && amt <= cash) launderMoney(amt); }} disabled={!launderAmount || parseInt(launderAmount) <= 0 || parseInt(launderAmount) > cash || modal || eventQueue.length > 0} className="bg-purple-700 hover:bg-purple-600 text-white text-xs py-2 rounded disabled:opacity-50">Launder</button><button onClick={() => launderMoney(cash)} disabled={cash <= 0 || modal || eventQueue.length > 0} className="bg-purple-900/50 hover:bg-purple-900 text-purple-300 text-xs py-2 rounded disabled:opacity-50 border border-purple-800">All Cash</button></div></div>) : (<div className="text-gray-500 text-xs p-4 text-center">Laundering unavailable here.</div>)}{laundering.length > 0 && (<div><div className="text-[10px] uppercase text-gray-500 font-bold mb-2">Pending Transactions</div><div className="space-y-1">{laundering.map(job => (<div key={job.id} className="flex justify-between text-xs bg-gray-950 p-2 rounded"><span className="text-gray-400">{job.location}</span><span className="text-white">{formatMoney(job.payout)}</span><span className="text-yellow-500">{job.hoursLeft}h left</span></div>))}</div></div>)}</div>
                             <div className="bg-red-900/10 p-4 rounded-lg border border-red-900/30 flex justify-between items-center"><div><div className="text-gray-500 text-xs">Total Debt</div><div className="text-xl font-black text-red-500">{formatMoney(debt)}</div>{limit && <div className="text-[10px] text-red-400">{limit - day + 1} Days Left</div>}</div><button onClick={payDebt} disabled={debt === 0 || cash === 0 || modal || eventQueue.length > 0} className="bg-red-900/50 hover:bg-red-900 text-red-300 text-xs px-4 py-2 rounded font-bold disabled:opacity-50">Pay Debt</button></div>
                             <div className="mt-8 bg-gray-900/50 p-4 rounded-lg"><h3 className="text-sm font-bold text-gray-400 mb-2">Comms Log</h3><div className="text-xs text-gray-500 space-y-1 font-mono">{logs.map((log, i) => <div key={i}>&gt; {log}</div>)}</div></div>
                             <button onClick={confirmQuit} disabled={modal || eventQueue.length > 0} className="w-full py-4 mt-4 text-sm text-red-500 font-bold hover:bg-red-900/10 border border-transparent hover:border-red-900/30 rounded flex items-center justify-center gap-2 transition-all disabled:opacity-50"><LogOut size={16} /> Quit to Menu</button>
@@ -1973,7 +3590,7 @@
                     )}
                 </div>
 
-                <div className="bg-gray-900 border-t border-gray-800 p-2 z-10 grid grid-cols-5 gap-2">
+                <div className="bg-gray-900 border-t border-gray-800 p-2 z-10 grid gap-2" style={{ gridTemplateColumns: showAdmin ? 'repeat(6, 1fr)' : 'repeat(5, 1fr)' }}>
                     <button onClick={() => setActiveTab('market')} disabled={modal || eventQueue.length > 0} className={`flex flex-col items-center justify-center p-2 rounded disabled:opacity-30 ${activeTab === 'market' ? 'text-indigo-400 bg-gray-800' : 'text-gray-500'}`}><DollarSign size={20} /><span className="text-[10px] mt-1 font-bold">Market</span></button>
                     <button onClick={() => setActiveTab('travel')} disabled={modal || eventQueue.length > 0} className={`flex flex-col items-center justify-center p-2 rounded disabled:opacity-30 ${activeTab === 'travel' ? 'text-indigo-400 bg-gray-800' : 'text-gray-500'}`}><Navigation size={20} /><span className="text-[10px] mt-1 font-bold">Travel</span></button>
                     {location.id !== 'lon' ? (
@@ -1983,6 +3600,7 @@
                     )}
                     <button onClick={() => setActiveTab('heat')} disabled={modal || eventQueue.length > 0} className={`flex flex-col items-center justify-center p-2 rounded disabled:opacity-30 ${activeTab === 'heat' ? 'text-red-400 bg-gray-800' : 'text-gray-500'}`}><Mask size={20} /><span className="text-[10px] mt-1 font-bold">Heat</span></button>
                     <button onClick={() => setActiveTab('finances')} disabled={modal || eventQueue.length > 0} className={`flex flex-col items-center justify-center p-2 rounded disabled:opacity-30 ${activeTab === 'finances' ? 'text-indigo-400 bg-gray-800' : 'text-gray-500'}`}><Landmark size={20} /><span className="text-[10px] mt-1 font-bold">Finances</span></button>
+                    {showAdmin && <button onClick={() => setActiveTab('admin')} disabled={modal || eventQueue.length > 0} className={`flex flex-col items-center justify-center p-2 rounded disabled:opacity-30 ${activeTab === 'admin' ? 'text-red-400 bg-gray-800' : 'text-gray-500'}`}><Lock size={20} /><span className="text-[10px] mt-1 font-bold">Admin</span></button>}
                 </div>
             </div>
         );
