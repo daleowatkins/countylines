@@ -654,7 +654,6 @@
                 
                 setInvestigation(0);
                 setInvestigationPausedUntil(0);
-                                                setInvestigationSlowedUntil(0);
                                 setInvestigationSlowedUntil(0);
                 setVehicle(null);
                 setActionCooldowns({});
@@ -865,6 +864,7 @@
                 setHealth(100);
                 setInvestigation(0);
                 setInvestigationPausedUntil(0);
+                setInvestigationSlowedUntil(0);
                 setActionCooldowns({});
                 setNextPayDay(7);
                 
@@ -909,7 +909,7 @@
 
             // --- Core Loop ---
 
-            const passTime = (hoursPassed, force = false, mode = 'wait') => {
+            const passTime = (hoursPassed, force = false, mode = 'wait', slowUntilOverride = null) => {
                 if (modal && !force) return;
 
                 let newTotalHours = totalHours + hoursPassed;
@@ -925,22 +925,20 @@
                 setHour(newHour);
                 
                 // --- Investigation Logic ---
+                const effectiveSlowedUntil = slowUntilOverride ?? investigationSlowedUntil;
+
                 if (totalHours > investigationPausedUntil) {
                     // Not paused
-                    let invGrowth = hoursPassed; // +1 per hour base
-                    
-                    // Apply slowdown if active
-                    if (totalHours < investigationSlowedUntil) {
-                        invGrowth *= 0.5; // 50% slower investigation growth
-                    }
-                    
-                    if (mode === 'car') invGrowth = hoursPassed * 2; // Doubles in car
-                    
-                    // If part of the duration was paused, calculate correctly
-                    if (totalHours < investigationPausedUntil + hoursPassed) {
-                         const pausedDuration = investigationPausedUntil - totalHours;
-                         const activeDuration = hoursPassed - Math.max(0, pausedDuration);
-                         invGrowth = activeDuration * (mode === 'car' ? 2 : 1);
+                    const pausedOverlap = Math.max(0, investigationPausedUntil - totalHours);
+                    const activeDuration = hoursPassed - pausedOverlap;
+                    const modeMultiplier = mode === 'car' ? 2 : 1;
+
+                    let invGrowth = 0;
+                    if (activeDuration > 0) {
+                        const slowedRemaining = Math.max(0, effectiveSlowedUntil - totalHours);
+                        const slowedHours = Math.max(0, Math.min(activeDuration, slowedRemaining));
+                        const normalHours = activeDuration - slowedHours;
+                        invGrowth = (normalHours + slowedHours * 0.1) * modeMultiplier; // slowdown to 10% speed
                     }
 
                     // Legal Retainer: -2% investigation growth per level
@@ -1574,18 +1572,17 @@
             };
 
             const performAction = (action) => {
+                // Check cooldown for actions that have it
+                if (action.cooldown) {
+                    const nextAvailableDay = actionCooldowns[action.id] || 0;
+                    if (day < nextAvailableDay) {
+                        setModal({ title: "Cooldown", message: `Can't do this yet. Wait ${nextAvailableDay - day} more days.`, type: 'error' });
+                        return;
+                    }
+                }
+
                 if (cash < action.cost) {
                     setModal({ title: "Skint", message: "You can't afford that.", type: 'error' });
-                
-                                    // Check cooldown for actions that have it
-                                    if (action.cooldown) {
-                                        const lastUsed = actionCooldowns[action.id] || 0;
-                                        if (day < lastUsed + action.cooldown) {
-                                            setModal({ title: "Cooldown", message: `Can't do this yet. Wait ${lastUsed + action.cooldown - day} more days.`, type: 'error' });
-                                            return;
-                                        }
-                                    }
-                
                     return;
                 }
                 const newHealth = Math.min(100, Math.max(0, health + action.health));
@@ -1595,10 +1592,19 @@
                 setStrength(s => Math.min(100, s + action.strength));
                 setIntel(i => Math.min(100, i + action.intel));
                 
-                // Handle Lay Low investigation slow
-                if (action.id === 'laylow') {
-                    setInvestigationSlowedUntil(totalHours + action.time);
-                    setActionCooldowns(prev => ({ ...prev, [action.id]: day }));
+                // Prepare Lay Low investigation slow (applied on passTime call)
+                const slowOverride = action.id === 'laylow'
+                    ? Math.max(totalHours, investigationSlowedUntil) + action.time
+                    : null;
+                if (slowOverride) {
+                    const durationDays = Math.ceil(action.time / 24);
+                    const nextAvailableDay = day + durationDays + (action.cooldown || 0);
+                    setInvestigationSlowedUntil(slowOverride);
+                    setActionCooldowns(prev => ({ ...prev, [action.id]: nextAvailableDay }));
+                } else if (action.cooldown) {
+                    const durationDays = Math.ceil(action.time / 24);
+                    const nextAvailableDay = day + durationDays + (action.cooldown || 0);
+                    setActionCooldowns(prev => ({ ...prev, [action.id]: nextAvailableDay }));
                 }
                 
                 if (newHealth <= 0) {
@@ -1606,8 +1612,8 @@
                     passTime(24, true); 
                 } else {
                     setModal(null);
-                    passTime(action.time, true);
-                    addLog(`Action: ${action.name}.`);
+                    passTime(action.time, true, 'wait', slowOverride);
+                    addLog(`Action: ${action.name}.` + (slowOverride ? ` Investigation slowed for ${action.time}h.` : ''));
                 }
             };
 
@@ -2605,12 +2611,24 @@
                                 {modal.type === 'actions' ? (
                                     <div className="grid grid-cols-2 gap-2">
                                         {TIME_ACTIONS.map(act => (
-                                            <button key={act.id} onClick={() => performAction(act)} className="bg-gray-800 hover:bg-gray-700 border border-gray-600 p-3 rounded text-left">
-                                                <div className="flex items-center gap-2 font-bold text-white text-xs mb-1"><act.icon size={14}/> {act.name}</div>
-                                                <div className="text-[10px] text-gray-400">{act.desc}</div>
-                                                <div className="flex justify-between text-[10px] mt-1 font-mono"><span>{act.time}h</span><span className={act.cost > 0 ? "text-red-400" : "text-green-400"}>{act.cost > 0 ? `£${act.cost}` : 'Free'}</span></div>
-                                            </button>
-                                        ))}
+                                            {TIME_ACTIONS.map(act => {
+                                                const nextAvailableDay = actionCooldowns[act.id] || 0;
+                                                const onCooldown = day < nextAvailableDay;
+                                                return (
+                                                    <button key={act.id} onClick={() => performAction(act)} disabled={onCooldown}
+                                                        className="bg-gray-800 hover:bg-gray-700 border border-gray-600 p-3 rounded text-left disabled:opacity-60 disabled:cursor-not-allowed relative">
+                                                        {onCooldown && (
+                                                            <div className="absolute inset-0 bg-gray-900/70 flex items-center justify-center text-[10px] font-bold tracking-wide text-gray-300">
+                                                                Cooldown {nextAvailableDay - day}d
+                                                            </div>
+                                                        )}
+                                                        <div className="flex items-center gap-2 font-bold text-white text-xs mb-1"><act.icon size={14}/> {act.name}</div>
+                                                        <div className="text-[10px] text-gray-400">{act.desc}</div>
+                                                        <div className="flex justify-between text-[10px] mt-1 font-mono"><span>{act.time}h</span><span className={act.cost > 0 ? "text-red-400" : "text-green-400"}>{act.cost > 0 ? `£${act.cost}` : 'Free'}</span></div>
+                                                    </button>
+                                                );
+                                            })}
+                                        )}
                                         <button onClick={() => setModal(null)} className="col-span-2 mt-2 py-2 text-xs text-gray-500 hover:text-white transition-colors">Cancel</button>
                                     </div>
                                 ) : modal.type === 'shutdown_confirm' ? (
