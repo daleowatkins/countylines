@@ -1,3 +1,4 @@
+            }, [day, hour, totalHours, cash, bank, crypto, debt, stress, health, investigation, investigationPausedUntil, investigationSlowedUntil, vehicle, actionCooldowns, nextPayDay, strength, intel, inventory, location, prices, btcPrice, crew, operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState, fallGuyUsed, customEvents]);
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -234,7 +235,7 @@
             { id: 'eat', name: 'Nandos', time: 1, cost: 15, stress: -5, health: 10, strength: 0, intel: 0, icon: Utensils, desc: "Eat (+Health)" },
             { id: 'chicken', name: 'Chicken Shop', time: 2, cost: 15, stress: -10, health: 15, strength: 0, intel: 0, icon: ShoppingBag, desc: "Grab Food (+Health)" },
             { id: 'studio', name: 'Day in Studio', time: 24, cost: 0, stress: -30, health: 5, strength: 0, intel: 3, icon: PlayCircle, desc: "Create (+Intel, -Stress)" },
-            { id: 'laylow', name: 'Lay Low', time: 72, cost: 0, stress: 20, health: -5, strength: 0, intel: 0, icon: Mask, desc: "Hide out (Pause Heat 72h)" },
+            { id: 'laylow', name: 'Lay Low', time: 72, cost: 0, stress: 20, health: -5, strength: 0, intel: 0, icon: Mask, desc: "Hide out (Slow Investigation 72h)", cooldown: 3 },
             { id: 'sleep_trap', name: 'Sleep at Trap', time: 8, cost: 0, stress: 0, health: 0, strength: 0, intel: 0, icon: Home, desc: "Pass time (8h)" },
             { id: 'hotel', name: 'Hotel', time: 8, cost: 80, stress: -100, health: 20, strength: 0, intel: 0, icon: Bed, desc: "Rest (++Health)" }
         ];
@@ -296,6 +297,7 @@
             // New Mechanics State
             const [investigation, setInvestigation] = useState(0); // 0 to 1000
             const [investigationPausedUntil, setInvestigationPausedUntil] = useState(0); // Total hours timestamp
+                        const [investigationSlowedUntil, setInvestigationSlowedUntil] = useState(0); // Total hours timestamp for slowed investigation
             const [vehicle, setVehicle] = useState(null); // { id: 'mondeo', ... }
             const [actionCooldowns, setActionCooldowns] = useState({}); // { 'sim': dayNumber }
             const [nextPayDay, setNextPayDay] = useState(7); // Day wage is due
@@ -399,14 +401,14 @@
                 if (gameState === 'playing') {
                 const saveState = {
                     day, hour, totalHours, cash, bank, crypto, debt, stress, health, 
-                    investigation, investigationPausedUntil, vehicle, actionCooldowns, nextPayDay,
+                    investigation, investigationPausedUntil, investigationSlowedUntil, vehicle, actionCooldowns, nextPayDay,
                     strength, intel, inventory, location, prices, btcPrice, crew, 
                     operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState,
                     skills, skillInvestment, fallGuyUsed, customEvents
                 };
                 localStorage.setItem('countyLinesSave_v10', JSON.stringify(saveState));
                 }
-            }, [day, hour, totalHours, cash, bank, crypto, debt, stress, health, investigation, investigationPausedUntil, vehicle, actionCooldowns, nextPayDay, strength, intel, inventory, location, prices, btcPrice, crew, operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState, fallGuyUsed, customEvents]);
+            }, [day, hour, totalHours, cash, bank, crypto, debt, stress, health, investigation, investigationPausedUntil, investigationSlowedUntil, vehicle, actionCooldowns, nextPayDay, strength, intel, inventory, location, prices, btcPrice, crew, operations, laundering, bannedLocations, productsConfig, logs, difficulty, gameState, fallGuyUsed, customEvents]);
 
             const loadGame = () => {
                 const saved = localStorage.getItem('countyLinesSave_v10');
@@ -425,6 +427,7 @@
                         
                         setInvestigation(data.investigation || 0);
                         setInvestigationPausedUntil(data.investigationPausedUntil || 0);
+                                                setInvestigationSlowedUntil(data.investigationSlowedUntil || 0);
                         setVehicle(data.vehicle || null);
                         setActionCooldowns(data.actionCooldowns || {});
                         setNextPayDay(data.nextPayDay || 7);
@@ -651,6 +654,8 @@
                 
                 setInvestigation(0);
                 setInvestigationPausedUntil(0);
+                                                setInvestigationSlowedUntil(0);
+                                setInvestigationSlowedUntil(0);
                 setVehicle(null);
                 setActionCooldowns({});
                 setNextPayDay(7);
@@ -923,6 +928,12 @@
                 if (totalHours > investigationPausedUntil) {
                     // Not paused
                     let invGrowth = hoursPassed; // +1 per hour base
+                    
+                    // Apply slowdown if active
+                    if (totalHours < investigationSlowedUntil) {
+                        invGrowth *= 0.5; // 50% slower investigation growth
+                    }
+                    
                     if (mode === 'car') invGrowth = hoursPassed * 2; // Doubles in car
                     
                     // If part of the duration was paused, calculate correctly
@@ -983,6 +994,7 @@
                         setHour(9);
                         setTotalHours(24 + 9);
                         setInvestigation(250); // Start at 25% investigation
+                                                setInvestigationSlowedUntil(0);
                         setInvestigationPausedUntil(0);
                         setDebt(0);
                         setStress(0);
@@ -1564,6 +1576,16 @@
             const performAction = (action) => {
                 if (cash < action.cost) {
                     setModal({ title: "Skint", message: "You can't afford that.", type: 'error' });
+                
+                                    // Check cooldown for actions that have it
+                                    if (action.cooldown) {
+                                        const lastUsed = actionCooldowns[action.id] || 0;
+                                        if (day < lastUsed + action.cooldown) {
+                                            setModal({ title: "Cooldown", message: `Can't do this yet. Wait ${lastUsed + action.cooldown - day} more days.`, type: 'error' });
+                                            return;
+                                        }
+                                    }
+                
                     return;
                 }
                 const newHealth = Math.min(100, Math.max(0, health + action.health));
@@ -1573,9 +1595,10 @@
                 setStrength(s => Math.min(100, s + action.strength));
                 setIntel(i => Math.min(100, i + action.intel));
                 
-                // Handle Lay Low investigation pause
+                // Handle Lay Low investigation slow
                 if (action.id === 'laylow') {
-                    setInvestigationPausedUntil(totalHours + action.time);
+                    setInvestigationSlowedUntil(totalHours + action.time);
+                    setActionCooldowns(prev => ({ ...prev, [action.id]: day }));
                 }
                 
                 if (newHealth <= 0) {
